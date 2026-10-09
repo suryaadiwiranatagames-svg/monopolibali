@@ -349,12 +349,12 @@
             };
         };
 
-        // Tekstur Petak Canvas Resolusi Tinggi & Proporsional (Sudut 512x512, Regular 512x910)
+        // Tekstur Petak Canvas Resolusi Tinggi (768x1365) & Tipografi Ekstra Tebal & Jelas
         const createTileTexture = (space) => {
             const isCorner = [0, 10, 20, 30].includes(space.id);
             const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = isCorner ? 512 : 910;
+            canvas.width = 768;
+            canvas.height = isCorner ? 768 : 1365;
             const ctx = canvas.getContext('2d');
 
             // Latar belakang kartu gading lembut anti-silau
@@ -363,168 +363,181 @@
 
             // Bingkai ganda kartu
             ctx.strokeStyle = "#94a3b8";
-            ctx.lineWidth = 10;
-            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            ctx.lineWidth = 14;
+            ctx.strokeRect(7, 7, canvas.width - 14, canvas.height - 14);
 
             ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+            ctx.lineWidth = 6;
+            ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
 
             if (isCorner) {
-                // --- DESAIN KHUSUS PETAK SUDUT PERSEGI (512x512) ---
+                // --- DESAIN KHUSUS PETAK SUDUT PERSEGI (768x768) ---
                 if (space.id === 0) {
                     // Petak 0: GO / MULAI
                     ctx.fillStyle = "#dc2626";
-                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillRect(14, 14, 740, 160);
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "900 46px -apple-system, sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("MULAI (GO)", 256, 65);
+                    ctx.font = "900 64px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("MULAI (GO)", 384, 94);
 
-                    ctx.font = "110px sans-serif";
-                    ctx.fillText("🏁", 256, 215);
+                    ctx.font = "160px sans-serif";
+                    ctx.fillText("🏁", 384, 320);
 
                     ctx.fillStyle = "#065f46";
-                    ctx.font = "900 32px sans-serif";
-                    ctx.fillText("LEWAT: +Rp 20.000", 256, 335);
+                    ctx.font = "900 48px sans-serif";
+                    ctx.fillText("LEWAT: +Rp 20.000", 384, 500);
 
                     ctx.fillStyle = "#b45309";
-                    ctx.font = "900 28px sans-serif";
-                    ctx.fillText("PAS: +Rp 30.000", 256, 390);
+                    ctx.font = "900 42px sans-serif";
+                    ctx.fillText("PAS: +Rp 30.000", 384, 580);
 
                     ctx.fillStyle = "#dc2626";
-                    ctx.font = "900 50px sans-serif";
-                    ctx.fillText("⬅️", 256, 450);
+                    ctx.font = "900 72px sans-serif";
+                    ctx.fillText("⬅️", 384, 670);
                 } else if (space.id === 10) {
                     // Petak 10: PENJARA KEROBOKAN
                     ctx.fillStyle = "#334155";
-                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillRect(14, 14, 740, 160);
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "900 38px -apple-system, sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("PENJARA KEROBOKAN", 256, 65);
+                    ctx.font = "900 54px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("PENJARA KEROBOKAN", 384, 94);
 
-                    ctx.font = "110px sans-serif";
-                    ctx.fillText("🔒", 256, 215);
+                    ctx.font = "160px sans-serif";
+                    ctx.fillText("🔒", 384, 320);
 
                     ctx.fillStyle = "#1e293b";
-                    ctx.font = "900 32px sans-serif";
-                    ctx.fillText("HANYA BERKUNJUNG", 256, 335);
+                    ctx.font = "900 52px sans-serif";
+                    ctx.fillText("HANYA BERKUNJUNG", 384, 500);
 
                     ctx.fillStyle = "#b45309";
-                    ctx.font = "bold 26px sans-serif";
-                    ctx.fillText("Tebusan Denda: Rp 5.000", 256, 390);
+                    ctx.font = "bold 40px sans-serif";
+                    ctx.fillText("Tebusan Denda: Rp 5.000", 384, 585);
 
                     ctx.fillStyle = "#64748b";
-                    ctx.font = "bold 22px sans-serif";
-                    ctx.fillText("Atau lempar dadu kembar", 256, 445);
+                    ctx.font = "bold 34px sans-serif";
+                    ctx.fillText("Atau lempar dadu kembar", 384, 665);
                 } else if (space.id === 20) {
                     // Petak 20: PARKIR BEBAS
                     ctx.fillStyle = "#d97706";
-                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillRect(14, 14, 740, 160);
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "900 42px -apple-system, sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("PARKIR BEBAS", 256, 65);
+                    ctx.font = "900 62px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("PARKIR BEBAS", 384, 94);
 
-                    ctx.font = "110px sans-serif";
-                    ctx.fillText("🅿️", 256, 215);
+                    ctx.font = "160px sans-serif";
+                    ctx.fillText("🅿️", 384, 320);
 
                     ctx.fillStyle = "#065f46";
-                    ctx.font = "900 32px sans-serif";
-                    ctx.fillText("REST AREA & KAS", 256, 335);
+                    ctx.font = "900 48px sans-serif";
+                    ctx.fillText("REST AREA & KAS", 384, 500);
 
                     ctx.fillStyle = "#475569";
-                    ctx.font = "bold 26px sans-serif";
-                    ctx.fillText("Klaim Kas / Terbang Bebas", 256, 395);
+                    ctx.font = "bold 38px sans-serif";
+                    ctx.fillText("Klaim Kas / Terbang Bebas", 384, 590);
                 } else if (space.id === 30) {
                     // Petak 30: KANTOR POLISI
                     ctx.fillStyle = "#1e3a8a";
-                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillRect(14, 14, 740, 160);
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "900 40px -apple-system, sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("KANTOR POLISI", 256, 65);
+                    ctx.font = "900 58px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("KANTOR POLISI", 384, 94);
 
-                    ctx.font = "110px sans-serif";
-                    ctx.fillText("🚔", 256, 215);
+                    ctx.font = "160px sans-serif";
+                    ctx.fillText("🚔", 384, 320);
 
                     ctx.fillStyle = "#dc2626";
-                    ctx.font = "900 34px sans-serif";
-                    ctx.fillText("MASUK PENJARA!", 256, 335);
+                    ctx.font = "900 52px sans-serif";
+                    ctx.fillText("MASUK PENJARA!", 384, 500);
 
                     ctx.fillStyle = "#475569";
-                    ctx.font = "bold 26px sans-serif";
-                    ctx.fillText("Langsung menuju Petak 10", 256, 395);
+                    ctx.font = "bold 38px sans-serif";
+                    ctx.fillText("Langsung menuju Petak 10", 384, 590);
                 }
             } else {
-                // --- DESAIN PETAK REGULAR (512x910) ---
+                // --- DESAIN PETAK REGULAR (768x1365) ---
+                // 1. Bar Warna Properti
                 if (space.type === 'property' && space.color) {
                     ctx.fillStyle = space.color;
-                    ctx.fillRect(10, 10, 492, 210);
+                    ctx.fillRect(14, 14, 740, 310);
                     ctx.strokeStyle = "rgba(0,0,0,0.35)";
-                    ctx.lineWidth = 6;
-                    ctx.strokeRect(10, 10, 492, 210);
+                    ctx.lineWidth = 8;
+                    ctx.strokeRect(14, 14, 740, 310);
 
                     ctx.fillStyle = "#d97706";
-                    ctx.fillRect(10, 220, 492, 12);
+                    ctx.fillRect(14, 324, 740, 18);
                 } else {
                     ctx.fillStyle = "#e2e8f0";
-                    ctx.fillRect(10, 10, 492, 150);
+                    ctx.fillRect(14, 14, 740, 220);
                     ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                    ctx.lineWidth = 6;
-                    ctx.strokeRect(10, 10, 492, 150);
+                    ctx.lineWidth = 8;
+                    ctx.strokeRect(14, 14, 740, 220);
                 }
 
-                ctx.fillStyle = "#090d16";
-                ctx.font = "900 46px -apple-system, BlinkMacSystemFont, sans-serif";
+                // 2. NAMA PROPERTI (FONT SANGAT BESAR, HITAM PEKAT & JELAS DARI JAUH)
+                ctx.fillStyle = "#000000";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
 
                 const words = space.name.split(" ");
-                if (words.length > 2) {
-                    ctx.fillText(words.slice(0, 2).join(" "), 256, 310);
-                    ctx.fillText(words.slice(2).join(" "), 256, 370);
+                if (words.length === 1) {
+                    // 1 kata: font ekstra besar 92px
+                    ctx.font = "900 92px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.fillText(words[0].toUpperCase(), 384, 520);
                 } else if (words.length === 2) {
-                    ctx.fillText(words[0], 256, 310);
-                    ctx.fillText(words[1], 256, 370);
+                    // 2 kata: font 80px 2 baris tegas
+                    ctx.font = "900 80px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    ctx.fillText(words[0].toUpperCase(), 384, 460);
+                    ctx.fillText(words[1].toUpperCase(), 384, 560);
                 } else {
-                    ctx.fillText(space.name, 256, 330);
+                    // 3 kata: font 70px
+                    ctx.font = "900 70px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+                    if (words[0].length + words[1].length <= 11) {
+                        ctx.fillText((words[0] + " " + words[1]).toUpperCase(), 384, 460);
+                        ctx.fillText(words[2].toUpperCase(), 384, 560);
+                    } else {
+                        ctx.fillText(words[0].toUpperCase(), 384, 450);
+                        ctx.fillText((words[1] + " " + words[2]).toUpperCase(), 384, 550);
+                    }
                 }
 
-                ctx.font = "96px sans-serif";
+                // 3. Ikon Petak Besar & Tajam
+                ctx.font = "150px sans-serif";
                 const icons = { go: "🏁", port: "🚢", utility: "⚡", chance: "❓", chest: "🎁", jail: "🔒", gotojail: "🚔", parking: "🅿️", tax: "💰" };
-                ctx.fillText(icons[space.type] || "🏖️", 256, 530);
+                ctx.fillText(icons[space.type] || "🏖️", 384, 800);
 
+                // 4. Badge Harga Beli (Pill Hijau Zamrud Tebal & Jelas)
                 if (space.price) {
-                    const px = 54, py = 730, pw = 404, ph = 95;
+                    const px = 64, py = 1100, pw = 640, ph = 145;
                     ctx.fillStyle = "#064e3b";
                     ctx.beginPath();
-                    ctx.arc(px + 47, py + 47, 47, Math.PI / 2, Math.PI * 1.5);
-                    ctx.arc(px + pw - 47, py + 47, 47, Math.PI * 1.5, Math.PI / 2);
+                    ctx.arc(px + 72, py + 72, 72, Math.PI / 2, Math.PI * 1.5);
+                    ctx.arc(px + pw - 72, py + 72, 72, Math.PI * 1.5, Math.PI / 2);
                     ctx.closePath();
                     ctx.fill();
 
                     ctx.strokeStyle = "#10b981";
-                    ctx.lineWidth = 6;
+                    ctx.lineWidth = 8;
                     ctx.stroke();
 
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "900 42px sans-serif";
-                    ctx.fillText(`Rp ${space.price.toLocaleString('id-ID')}`, 256, py + 49);
+                    ctx.font = "900 64px -apple-system, sans-serif";
+                    ctx.fillText(`Rp ${space.price.toLocaleString('id-ID')}`, 384, py + 75);
                 }
             }
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.anisotropy = 16;
+            texture.generateMipmaps = true;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
             return texture;
         };
 
-                const createDiceTexture = (number) => {
+                        const createDiceTexture = (number) => {
             const canvas = document.createElement('canvas');
             canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d');
@@ -585,6 +598,8 @@
             const [musicVolume, setMusicVolume] = React.useState(0.28);
             const [showAssetDrawer, setShowAssetDrawer] = React.useState(false);
             const [isSfxMuted, setIsSfxMuted] = React.useState(false);
+            const [cameraMode, setCameraMode] = React.useState('3D'); // '3D' atau 'TOP'
+            const [hoveredSpace, setHoveredSpace] = React.useState(null);
 
             // Dadu Hold to Roll
             const [isHoldingDice, setIsHoldingDice] = React.useState(false);
@@ -1397,6 +1412,27 @@
                     }
                 });
 
+                // Pointermove untuk mendeteksi petak yang disorot (Hover)
+                renderer.domElement.addEventListener('pointermove', (e) => {
+                    const rect = renderer.domElement.getBoundingClientRect();
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(boardGroup.children, true);
+                    let foundId = null;
+                    for (let hit of intersects) {
+                        let obj = hit.object;
+                        while (obj && typeof obj.userData?.spaceId !== 'number' && obj !== boardGroup) {
+                            obj = obj.parent;
+                        }
+                        if (obj && typeof obj.userData?.spaceId === 'number') {
+                            foundId = obj.userData.spaceId;
+                            break;
+                        }
+                    }
+                    setHoveredSpace(foundId !== null ? boardData[foundId] : null);
+                });
+
                 const handleResize = () => {
                     camera.aspect = window.innerWidth / window.innerHeight;
                     camera.updateProjectionMatrix();
@@ -1476,8 +1512,8 @@
                     new THREE.MeshStandardMaterial({ color: 0xffffff })
                 ];
                 const cardMesh = new THREE.Mesh(cardGeo, cardMat);
-                const startX = isChance ? -5.5 : 5.5;
-                const startZ = isChance ? -5.5 : 5.5;
+                const startX = isChance ? -6.0 : 6.0;
+                const startZ = isChance ? -1.8 : 1.8;
                 cardMesh.position.set(startX, 1.8, startZ);
                 cardMesh.rotation.y = Math.PI / 4;
                 scene.add(cardMesh);
@@ -1709,6 +1745,25 @@
                     }
                 });
             }, [board, players, freeParkingPot, screen]);
+
+            // Toggle Sudut Kamera: 3D Perspektif vs Tampilan Atas (2D Top-Down yang Sangat Jelas)
+            const toggleCameraView = () => {
+                const obj = threeSceneRef.current;
+                if (!obj) return;
+                const { camera, controls } = obj;
+                const willBeTop = cameraMode === '3D';
+                const targetPos = willBeTop ? { x: 0, y: 46, z: 0.01 } : { x: 0, y: 36, z: 32 };
+
+                new window.TWEEN.Tween(camera.position)
+                    .to(targetPos, 850)
+                    .easing(window.TWEEN.Easing.Cubic.InOut)
+                    .onUpdate(() => { controls.update(); })
+                    .onComplete(() => {
+                        setCameraMode(willBeTop ? 'TOP' : '3D');
+                        controls.update();
+                    })
+                    .start();
+            };
 
             // Animasi Dadu 3D Menggelinding Lebih Banyak, Dramatis & Multi-Bounce Fisika Nyata
             const roll3DDice = (d1, d2, onComplete) => {
@@ -2567,19 +2622,46 @@
                                 </div>
                             </div>
 
-                            {/* Info Aksi Terkini (Turn Summary) */}
-                            <div className="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+                            {/* Info Aksi Terkini & Live Preview Nama Petak */}
+                            <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 text-xs flex items-center justify-between shadow-lg">
                                 <div className="text-left flex-1">
-                                    <span className="font-extrabold text-white text-sm block mb-0.5">{turnSummary.title}</span>
-                                    <p className="text-slate-300 leading-snug text-xs">{turnSummary.detail}</p>
+                                    {hoveredSpace ? (
+                                        <div>
+                                            <span className="font-black text-amber-300 text-sm block mb-0.5 flex items-center gap-1.5">
+                                                <span>🔍</span>
+                                                <span>{hoveredSpace.name.toUpperCase()}</span>
+                                                {hoveredSpace.price ? (
+                                                    <span className="text-emerald-400 font-extrabold ml-1">
+                                                        • Rp {hoveredSpace.price.toLocaleString('id-ID')}
+                                                    </span>
+                                                ) : null}
+                                            </span>
+                                            <p className="text-slate-200 leading-snug text-xs font-semibold">{hoveredSpace.desc}</p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <span className="font-extrabold text-white text-sm block mb-0.5">{turnSummary.title}</span>
+                                            <p className="text-slate-300 leading-snug text-xs">{turnSummary.detail}</p>
+                                        </div>
+                                    )}
                                 </div>
-                                <button
-                                    onClick={() => setShowAssetDrawer(!showAssetDrawer)}
-                                    className="ml-3 shrink-0 py-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-black text-[0.7rem] shadow transition-all flex items-center gap-1.5"
-                                >
-                                    <span>📋</span>
-                                    <span>{showAssetDrawer ? 'Tutup Aset' : 'Aset Pemain'}</span>
-                                </button>
+                                <div className="ml-3 shrink-0 flex items-center gap-2">
+                                    <button
+                                        onClick={toggleCameraView}
+                                        title="Ganti Sudut Pandang Kamera"
+                                        className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-black text-[0.7rem] shadow transition-all flex items-center gap-1"
+                                    >
+                                        <span>{cameraMode === 'TOP' ? '🎥' : '📐'}</span>
+                                        <span className="hidden md:inline">{cameraMode === 'TOP' ? 'Mode 3D' : 'Tampilan Atas (2D)'}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAssetDrawer(!showAssetDrawer)}
+                                        className="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-black text-[0.7rem] shadow transition-all flex items-center gap-1.5"
+                                    >
+                                        <span>📋</span>
+                                        <span>{showAssetDrawer ? 'Tutup Aset' : 'Aset Pemain'}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         {/* Drawer Inventaris Aset Seluruh Pemain */}
