@@ -1300,8 +1300,9 @@
                     return deckGroup;
                 };
 
-                boardGroup.add(create3DCardDeck("KESEMPATAN", "#d97706", -5.5, -5.5, Math.PI / 4));
-                boardGroup.add(create3DCardDeck("DANA PUNIA", "#064e3b", 5.5, 5.5, Math.PI / 4));
+                // Posisi Dek Kartu 3D Diatur Proporsional & Bebas Tabrakan
+                boardGroup.add(create3DCardDeck("KESEMPATAN", "#d97706", -6.0, -1.8, Math.PI / 4));
+                boardGroup.add(create3DCardDeck("DANA PUNIA", "#064e3b", 6.0, 1.8, Math.PI / 4));
 
                 // 40 Petak
                 boardData.forEach((space) => {
@@ -1535,44 +1536,44 @@
                 chestGroup.position.set(parkCoords.x, 1.5, parkCoords.z);
                 group.add(chestGroup);
 
-                // 1B. Tampilkan Podium / Papan Plakat 3D Kas Daerah & Parkir Bebas di Tengah Papan
+                // 1B. Tampilkan Podium / Papan Plakat 3D Kas Daerah & Parkir Bebas di Tengah Papan (Proporsional & Bebas Tabrakan)
                 const centerPotGroup = new THREE.Group();
 
                 // Stand & Pedestal Kayu Mahoni & Emas
                 const potBase = new THREE.Mesh(
-                    new THREE.BoxGeometry(9.6, 0.35, 3.2),
+                    new THREE.BoxGeometry(8.0, 0.35, 2.7),
                     new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.35, metalness: 0.25 })
                 );
                 potBase.position.y = 0.18;
                 centerPotGroup.add(potBase);
 
                 const potTrim = new THREE.Mesh(
-                    new THREE.BoxGeometry(9.9, 0.1, 3.5),
+                    new THREE.BoxGeometry(8.3, 0.1, 2.95),
                     new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.85 })
                 );
                 potTrim.position.y = 0.38;
                 centerPotGroup.add(potTrim);
 
                 // Bokor Sesari Emas di Sisi Kiri & Kanan Berisi Koin
-                [-4.1, 4.1].forEach(bx => {
+                [-3.3, 3.3].forEach(bx => {
                     const bokor = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.8, 0.45, 0.5, 16),
+                        new THREE.CylinderGeometry(0.72, 0.42, 0.48, 16),
                         new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.18, metalness: 0.88 })
                     );
-                    bokor.position.set(bx, 0.6, 0);
+                    bokor.position.set(bx, 0.58, 0);
                     centerPotGroup.add(bokor);
 
                     const coins = new THREE.Mesh(
-                        new THREE.SphereGeometry(0.7, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+                        new THREE.SphereGeometry(0.64, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
                         new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.2, metalness: 0.9 })
                     );
-                    coins.position.set(bx, 0.8, 0);
+                    coins.position.set(bx, 0.76, 0);
                     centerPotGroup.add(coins);
                 });
 
                 // Plakat Papan Display Miring Menghadap Sudut Kamera
                 const plaqueBack = new THREE.Mesh(
-                    new THREE.BoxGeometry(7.6, 2.5, 0.18),
+                    new THREE.BoxGeometry(6.6, 2.2, 0.18),
                     new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.3, metalness: 0.4 })
                 );
                 plaqueBack.position.set(0, 1.45, 0.15);
@@ -1621,15 +1622,15 @@
                 cpctx.fillText('Akumulasi Pajak, Tilang, & Tebusan Penjara', 384, 198);
 
                 const plaqueFront = new THREE.Mesh(
-                    new THREE.PlaneGeometry(7.5, 2.45),
+                    new THREE.PlaneGeometry(6.5, 2.15),
                     new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(cpCvs), roughness: 0.35 })
                 );
                 plaqueFront.position.set(0, 1.45, 0.26);
                 plaqueFront.rotation.x = -Math.PI / 6.5;
                 centerPotGroup.add(plaqueFront);
 
-                // Letakkan di tengah papan bagian atas (antara dua dek kartu)
-                centerPotGroup.position.set(0, 1.44, -5.8);
+                // Diletakkan rapi di sisi atas tengah papan (z = -6.6) dengan jarak aman dari dek kartu
+                centerPotGroup.position.set(0, 1.44, -6.6);
                 group.add(centerPotGroup);
 
                 // 2. Tanda Kepemilikan 3D & Bangunan di Setiap Petak
@@ -1709,34 +1710,115 @@
                 });
             }, [board, players, freeParkingPot, screen]);
 
-            // Animasi Dadu 3D
+            // Animasi Dadu 3D Menggelinding Lebih Banyak, Dramatis & Multi-Bounce Fisika Nyata
             const roll3DDice = (d1, d2, onComplete) => {
                 const dice = diceMeshesRef.current;
                 if (!dice || dice.length < 2) { onComplete(); return; }
-                setIsRolling(true); playSoundEffect('dice');
+                setIsRolling(true);
 
                 const faceRotations = {
-                    1: { x: 0, z: Math.PI / 2 }, 2: { x: 0, z: 0 }, 3: { x: -Math.PI / 2, z: 0 },
-                    4: { x: Math.PI / 2, z: 0 }, 5: { x: Math.PI, z: 0 }, 6: { x: 0, z: -Math.PI / 2 }
+                    1: { x: 0, z: Math.PI / 2 },
+                    2: { x: 0, z: 0 },
+                    3: { x: -Math.PI / 2, z: 0 },
+                    4: { x: Math.PI / 2, z: 0 },
+                    5: { x: Math.PI, z: 0 },
+                    6: { x: 0, z: -Math.PI / 2 }
                 };
 
                 const targetRot1 = faceRotations[d1] || { x: 0, z: 0 };
                 const targetRot2 = faceRotations[d2] || { x: 0, z: 0 };
 
+                // Suara kocokan awal
+                playSoundEffect('dice');
+
+                const totalRollDuration = 1750; // Durasi menggelinding yang panjang dan memuaskan (~1.75s)
+                let completedDice = 0;
+
                 dice.forEach((die, i) => {
                     const isLeft = i === 0;
-                    die.position.set(isLeft ? -4 : 4, 8, isLeft ? 3 : -3);
+                    const finalX = isLeft ? -1.8 : 1.8;
+                    const finalZ = 0;
                     const targetRot = isLeft ? targetRot1 : targetRot2;
-                    const fullSpins = (Math.PI * 2) * 3;
 
-                    new window.TWEEN.Tween(die.position)
-                        .to({ y: 2.3, x: isLeft ? -1.8 : 1.8, z: 0 }, 750)
-                        .easing(window.TWEEN.Easing.Bounce.Out).start();
+                    // Posisi lempar dari atas dan sudut yang dinamis
+                    const startX = isLeft ? -7.5 : 7.5;
+                    const startY = 12.5 + (i * 1.5);
+                    const startZ = isLeft ? 5.5 : -5.5;
 
+                    // Titik benturan ke-1
+                    const b1X = isLeft ? -4.2 : 4.2;
+                    const b1Z = isLeft ? 2.8 : -2.8;
+
+                    // Titik pantulan ke-2 (melambung kembali ke udara)
+                    const b2X = isLeft ? -2.8 : 2.8;
+                    const b2Z = isLeft ? 1.2 : -1.2;
+
+                    // Jumlah putaran penuh menggelinding yang sangat banyak (9 hingga 13 putaran 360°)
+                    const spinsX = (Math.PI * 2) * (9 + (i * 2));
+                    const spinsY = (Math.PI * 2) * (8 + (i * 2)) + (Math.random() * 0.9);
+                    const spinsZ = (Math.PI * 2) * (9 + (i * 2));
+
+                    die.position.set(startX, startY, startZ);
+                    die.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
+
+                    // Multi-Stage Trajectory Menggelinding & Memantul di Papan
+                    // 1. Jatuh kencang ke papan
+                    const step1 = new window.TWEEN.Tween(die.position)
+                        .to({ x: b1X, y: 2.3, z: b1Z }, 420)
+                        .easing(window.TWEEN.Easing.Quadratic.In)
+                        .onComplete(() => {
+                            playSoundEffect('dice'); // Bunyi benturan 1
+                        });
+
+                    // 2. Memantul tinggi ke atas sambil berputar kencang
+                    const step2 = new window.TWEEN.Tween(die.position)
+                        .to({ x: b2X, y: 5.8, z: b2Z }, 400)
+                        .easing(window.TWEEN.Easing.Quadratic.Out);
+
+                    // 3. Menghujam kembali ke permukaan papan
+                    const step3 = new window.TWEEN.Tween(die.position)
+                        .to({ x: (b2X + finalX) / 2, y: 2.3, z: (b2Z + finalZ) / 2 }, 360)
+                        .easing(window.TWEEN.Easing.Quadratic.In)
+                        .onComplete(() => {
+                            playSoundEffect('dice'); // Bunyi benturan 2
+                        });
+
+                    // 4. Pantulan sekunder kecil
+                    const step4 = new window.TWEEN.Tween(die.position)
+                        .to({ x: finalX, y: 3.4, z: finalZ }, 250)
+                        .easing(window.TWEEN.Easing.Quadratic.Out);
+
+                    // 5. Mendarat dan berguling halus ke posisi diam
+                    const step5 = new window.TWEEN.Tween(die.position)
+                        .to({ x: finalX, y: 2.3, z: finalZ }, 320)
+                        .easing(window.TWEEN.Easing.Bounce.Out);
+
+                    step1.chain(step2);
+                    step2.chain(step3);
+                    step3.chain(step4);
+                    step4.chain(step5);
+
+                    // Putaran Kontinu Menggelinding di Udara & Permukaan Papan
                     new window.TWEEN.Tween(die.rotation)
-                        .to({ x: targetRot.x + fullSpins, y: fullSpins + (Math.random() * 0.5), z: targetRot.z + fullSpins }, 750)
+                        .to({
+                            x: targetRot.x + spinsX,
+                            y: spinsY,
+                            z: targetRot.z + spinsZ
+                        }, totalRollDuration)
                         .easing(window.TWEEN.Easing.Cubic.Out)
-                        .onComplete(() => { if (i === 1) { setIsRolling(false); onComplete(); } }).start();
+                        .onComplete(() => {
+                            die.rotation.x = targetRot.x;
+                            die.rotation.y = 0;
+                            die.rotation.z = targetRot.z;
+                            completedDice++;
+                            if (completedDice === 2) {
+                                setIsRolling(false);
+                                onComplete();
+                            }
+                        })
+                        .start();
+
+                    step1.start();
                 });
             };
 
