@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <!-- Asset Wallpaper Papan Monopoli Bali (Base64 Zero-CORS) -->
+    <script src="board_asset_data.js"></script>
 
     <style>
         body, html {
@@ -24,7 +26,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #060a12;
+            background: #87ceeb;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             user-select: none;
             color: #fff;
@@ -670,8 +672,24 @@
                 const height = window.innerHeight;
 
                 const scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x060a12);
-                scene.fog = new THREE.FogExp2(0x060a12, 0.014);
+
+                // 1. Langit Tropis Cerah & Kabut Halus Pulau Dewata
+                const createSkyCanvas = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 512; cvs.height = 512;
+                    const ctx = cvs.getContext('2d');
+                    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                    grad.addColorStop(0, '#38bdf8');   // Biru langit tropis cerah
+                    grad.addColorStop(0.45, '#7dd3fc');
+                    grad.addColorStop(0.8, '#bae6fd');
+                    grad.addColorStop(1, '#e0f2fe');   // Horizon lembut
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    return cvs;
+                };
+                const skyTex = new THREE.CanvasTexture(createSkyCanvas());
+                scene.background = skyTex;
+                scene.fog = new THREE.FogExp2(0xa7d8de, 0.005);
 
                 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
                 camera.position.set(0, 36, 32);
@@ -693,33 +711,369 @@
                 controls.dampingFactor = 0.05;
                 controls.maxPolarAngle = Math.PI / 2 - 0.05;
                 controls.minDistance = 12;
-                controls.maxDistance = 75;
+                controls.maxDistance = 85;
 
-                // Lighting (Seimbang & Anti-Silau)
-                scene.add(new THREE.AmbientLight(0xfff5eb, 0.5));
-                const dirLight = new THREE.DirectionalLight(0xfffaed, 0.75);
-                dirLight.position.set(20, 42, 20);
+                // 2. Pencahayaan Tropis Alami (Hangat, Bersemu Emas & Anti-Silau)
+                scene.add(new THREE.AmbientLight(0xfff8ee, 0.65));
+                const dirLight = new THREE.DirectionalLight(0xfffaed, 0.8);
+                dirLight.position.set(25, 48, 22);
                 dirLight.castShadow = true;
                 dirLight.shadow.mapSize.width = 2048;
                 dirLight.shadow.mapSize.height = 2048;
-                dirLight.shadow.bias = -0.0005;
+                dirLight.shadow.bias = -0.0004;
                 scene.add(dirLight);
 
-                const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.25);
-                fillLight.position.set(-20, 20, -20);
+                const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.35);
+                fillLight.position.set(-22, 28, -20);
                 scene.add(fillLight);
 
-                // Meja
-                const tableMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ color: 0x050811, roughness: 0.9 }));
-                tableMesh.rotation.x = -Math.PI / 2;
-                tableMesh.receiveShadow = true;
-                scene.add(tableMesh);
+                const bounceLight = new THREE.DirectionalLight(0x86efac, 0.2);
+                bounceLight.position.set(0, -10, 0);
+                scene.add(bounceLight);
 
-                // Base Papan 3D
+                // 3. LINGKUNGAN TAMAN TROPIS BALI & BALE BENGONG DI LUAR BOARD
+                const gardenGroup = new THREE.Group();
+                scene.add(gardenGroup);
+
+                // A. Hamparan Rumput Hijau Taman Tropis
+                const createGrassTexture = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 512; cvs.height = 512;
+                    const ctx = cvs.getContext('2d');
+                    ctx.fillStyle = '#15803d'; // Hijau dasar rumput tropis
+                    ctx.fillRect(0, 0, 512, 512);
+                    for (let i = 0; i < 4500; i++) {
+                        const x = Math.random() * 512;
+                        const y = Math.random() * 512;
+                        const r = Math.random();
+                        ctx.fillStyle = r > 0.65 ? '#22c55e' : (r > 0.3 ? '#166534' : '#14532d');
+                        ctx.fillRect(x, y, 2, 4 + Math.random() * 5);
+                    }
+                    const tex = new THREE.CanvasTexture(cvs);
+                    tex.wrapS = THREE.RepeatWrapping;
+                    tex.wrapT = THREE.RepeatWrapping;
+                    tex.repeat.set(28, 28);
+                    tex.anisotropy = 8;
+                    return tex;
+                };
+
+                const grassGeo = new THREE.PlaneGeometry(550, 550);
+                const grassMat = new THREE.MeshStandardMaterial({ map: createGrassTexture(), roughness: 0.95 });
+                const grassMesh = new THREE.Mesh(grassGeo, grassMat);
+                grassMesh.rotation.x = -Math.PI / 2;
+                grassMesh.position.y = -0.15;
+                grassMesh.receiveShadow = true;
+                gardenGroup.add(grassMesh);
+
+                // B. Teras Luar Batu Alam Candi Bali
+                const createStonePavingTexture = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 512; cvs.height = 512;
+                    const ctx = cvs.getContext('2d');
+                    ctx.fillStyle = '#475569';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#334155'; ctx.lineWidth = 6;
+                    for (let i = 0; i <= 512; i += 64) {
+                        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+                    }
+                    const tex = new THREE.CanvasTexture(cvs);
+                    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+                    tex.repeat.set(7, 7);
+                    return tex;
+                };
+
+                const terraceGeo = new THREE.BoxGeometry(56, 0.3, 56);
+                const terraceMat = new THREE.MeshStandardMaterial({ map: createStonePavingTexture(), roughness: 0.85 });
+                const terraceMesh = new THREE.Mesh(terraceGeo, terraceMat);
+                terraceMesh.position.y = -0.05;
+                terraceMesh.receiveShadow = true;
+                gardenGroup.add(terraceMesh);
+
+                // C. Lantai Dek Kayu Jati Bale Bengong (Tempat Meja Papan Bertengger)
+                const createWoodDeckTexture = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 512; cvs.height = 512;
+                    const ctx = cvs.getContext('2d');
+                    ctx.fillStyle = '#78350f'; // Kayu jati hangat
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#451a03'; ctx.lineWidth = 4;
+                    for (let i = 0; i <= 512; i += 32) {
+                        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+                    }
+                    const tex = new THREE.CanvasTexture(cvs);
+                    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+                    tex.repeat.set(5, 5);
+                    return tex;
+                };
+
+                const deckGeo = new THREE.BoxGeometry(42, 0.25, 42);
+                const deckMat = new THREE.MeshStandardMaterial({ map: createWoodDeckTexture(), roughness: 0.65 });
+                const deckMesh = new THREE.Mesh(deckGeo, deckMat);
+                deckMesh.position.y = 0.12;
+                deckMesh.receiveShadow = true;
+                gardenGroup.add(deckMesh);
+
+                // D. Batu Pijakan Taman (Stepping Stones)
+                const stepStoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+                const stepStoneGeo = new THREE.CylinderGeometry(1.2, 1.35, 0.15, 12);
+                [
+                    [0, 24], [0, 28], [0, 32], [2, 36], [-2, 40],
+                    [0, -24], [0, -28], [0, -32], [-2, -36], [2, -40],
+                    [24, 0], [28, 0], [32, 0], [36, 2], [40, -2],
+                    [-24, 0], [-28, 0], [-32, 0], [-36, -2], [-40, 2]
+                ].forEach(([sx, sz]) => {
+                    const st = new THREE.Mesh(stepStoneGeo, stepStoneMat);
+                    st.position.set(sx, 0.02, sz);
+                    st.receiveShadow = true;
+                    gardenGroup.add(st);
+                });
+
+                // E. 4 Tiang Bale Kayu Jati Ukir Emas di Sudut Dek
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x5c2e0b, roughness: 0.4 });
+                const goldCapMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.85, roughness: 0.2 });
+                [[-19.5, -19.5], [19.5, -19.5], [-19.5, 19.5], [19.5, 19.5]].forEach(([px, pz]) => {
+                    const pil = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 11, 16), pillarMat);
+                    pil.position.set(px, 5.5, pz);
+                    pil.castShadow = true;
+                    gardenGroup.add(pil);
+                    // Aksen Emas
+                    const cap1 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 1.1), goldCapMat);
+                    cap1.position.set(px, 1.2, pz);
+                    gardenGroup.add(cap1);
+                    const cap2 = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.4, 1.3), goldCapMat);
+                    cap2.position.set(px, 10.8, pz);
+                    gardenGroup.add(cap2);
+                });
+
+                // F. 4 Tedung / Pajeng Bali Tradisional (Payung Upacara Kuning Emas & Merah)
+                const createTedungBali = (tx, tz, colorHex) => {
+                    const tedungGroup = new THREE.Group();
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 9, 8), new THREE.MeshStandardMaterial({ color: 0x451a03 }));
+                    pole.position.y = 4.5; pole.castShadow = true;
+                    tedungGroup.add(pole);
+
+                    const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.3, 1.3, 16), new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 }));
+                    canopy.position.y = 8.5; canopy.castShadow = true;
+                    tedungGroup.add(canopy);
+
+                    // Rumbai Emas di Tepi Payung
+                    const fringe = new THREE.Mesh(new THREE.TorusGeometry(2.28, 0.08, 8, 24), new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.2, metalness: 0.6 }));
+                    fringe.rotation.x = Math.PI / 2;
+                    fringe.position.y = 7.85;
+                    tedungGroup.add(fringe);
+
+                    tedungGroup.position.set(tx, 0.1, tz);
+                    return tedungGroup;
+                };
+                gardenGroup.add(createTedungBali(-18, 18, 0xeab308)); // Kuning Emas
+                gardenGroup.add(createTedungBali(18, 18, 0xdc2626));  // Merah Sakral
+                gardenGroup.add(createTedungBali(-18, -18, 0xdc2626));
+                gardenGroup.add(createTedungBali(18, -18, 0xeab308));
+
+                // G. 4 Pelinggih / Candi Batu Paras Berbalut Kain Poleng (Khas Bali)
+                const createPolengTexture = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 128; cvs.height = 128;
+                    const ctx = cvs.getContext('2d');
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
+                    ctx.fillStyle = '#18181b';
+                    ctx.fillRect(0, 0, 64, 64);
+                    ctx.fillRect(64, 64, 64, 64);
+                    const tex = new THREE.CanvasTexture(cvs);
+                    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+                    tex.repeat.set(4, 2);
+                    return tex;
+                };
+                const polengTex = createPolengTexture();
+
+                const createCandiPoleng = (cx, cz) => {
+                    const candiGroup = new THREE.Group();
+                    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+                    // Dudukan batu
+                    const b1 = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 1.8), stoneMat);
+                    b1.position.y = 0.3; b1.castShadow = true; candiGroup.add(b1);
+                    // Badan berbalut Kain Poleng
+                    const polengMesh = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.9, 1.4), new THREE.MeshStandardMaterial({ map: polengTex, roughness: 0.6 }));
+                    polengMesh.position.y = 1.0; polengMesh.castShadow = true; candiGroup.add(polengMesh);
+                    // Atap meru batu
+                    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.2, 1.4, 4), stoneMat);
+                    roof.rotation.y = Math.PI / 4;
+                    roof.position.y = 2.1; roof.castShadow = true; candiGroup.add(roof);
+
+                    candiGroup.position.set(cx, 0.1, cz);
+                    return candiGroup;
+                };
+                gardenGroup.add(createCandiPoleng(-16, 21));
+                gardenGroup.add(createCandiPoleng(16, 21));
+                gardenGroup.add(createCandiPoleng(-16, -21));
+                gardenGroup.add(createCandiPoleng(16, -21));
+
+                // H. Pohon Kelapa Bali (Palm Trees)
+                const createPalmTree = (px, pz, scale = 1, rotY = 0) => {
+                    const palmGroup = new THREE.Group();
+                    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x654321, roughness: 0.85 });
+                    let currentY = 0, currentX = 0, currentZ = 0;
+                    const segments = 8;
+                    for (let i = 0; i < segments; i++) {
+                        const h = 2.2 * scale;
+                        const r = (0.55 - (i * 0.035)) * scale;
+                        const seg = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.9, r, h, 10), trunkMat);
+                        seg.position.set(currentX, currentY + h / 2, currentZ);
+                        seg.castShadow = true;
+                        palmGroup.add(seg);
+                        currentY += h * 0.96;
+                        currentX += Math.sin(rotY) * (0.28 * scale);
+                        currentZ += Math.cos(rotY) * (0.28 * scale);
+                    }
+
+                    // Buah Kelapa
+                    const cocoMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.5 });
+                    for (let c = 0; c < 5; c++) {
+                        const ang = (c / 5) * Math.PI * 2;
+                        const coco = new THREE.Mesh(new THREE.SphereGeometry(0.38 * scale, 8, 8), cocoMat);
+                        coco.position.set(currentX + Math.cos(ang) * 0.5, currentY - 0.2, currentZ + Math.sin(ang) * 0.5);
+                        palmGroup.add(coco);
+                    }
+
+                    // Pelepah Daun Kelapa Menjuntai Lebat
+                    const frondMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.45, side: THREE.DoubleSide });
+                    const frondCount = 12;
+                    for (let f = 0; f < frondCount; f++) {
+                        const frondAngle = (f / frondCount) * Math.PI * 2;
+                        const frondGeo = new THREE.CylinderGeometry(0.04, 0.85 * scale, 7.5 * scale, 5);
+                        const frond = new THREE.Mesh(frondGeo, frondMat);
+                        frond.rotation.z = Math.PI / 3;
+                        frond.rotation.y = frondAngle;
+                        frond.position.set(currentX, currentY, currentZ);
+                        frond.castShadow = true;
+                        palmGroup.add(frond);
+                    }
+
+                    palmGroup.position.set(px, 0, pz);
+                    return palmGroup;
+                };
+
+                const palmLocations = [
+                    [-36, -38, 1.15, 0.4], [38, -35, 1.25, -0.6], [-40, 32, 1.1, 0.8], [36, 40, 1.2, -0.3],
+                    [-55, -15, 1.35, 0.5], [52, 10, 1.3, -0.8], [-52, 18, 1.2, 0.2], [50, -25, 1.15, -0.4],
+                    [-25, -55, 1.3, 0.6], [22, -58, 1.25, -0.5], [-20, 56, 1.1, 0.3], [25, 58, 1.2, -0.2],
+                    [-68, -45, 1.4, 0.7], [68, 45, 1.35, -0.9], [-65, 50, 1.3, 0.4], [70, -48, 1.25, -0.6]
+                ];
+                palmLocations.forEach(([px, pz, pscale, prot]) => {
+                    gardenGroup.add(createPalmTree(px, pz, pscale, prot));
+                });
+
+                // I. Pohon Kamboja / Frangipani Bali (Bunga Putih-Kuning Harum)
+                const createFrangipaniTree = (fx, fz, scale = 1) => {
+                    const treeGroup = new THREE.Group();
+                    const barkMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8 });
+                    const leafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5 });
+                    const flowerMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 });
+
+                    // Batang utama bengkok artistik
+                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35 * scale, 0.5 * scale, 4.2 * scale, 8), barkMat);
+                    trunk.position.y = 2.1 * scale;
+                    trunk.rotation.z = 0.12;
+                    treeGroup.add(trunk);
+
+                    // 3 Cabang
+                    [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].forEach((ang, i) => {
+                        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.28 * scale, 3 * scale, 6), barkMat);
+                        branch.position.set(Math.cos(ang) * 0.8 * scale, 4 * scale, Math.sin(ang) * 0.8 * scale);
+                        branch.rotation.x = Math.cos(ang) * 0.45;
+                        branch.rotation.z = Math.sin(ang) * 0.45;
+                        treeGroup.add(branch);
+
+                        // Rumpun Daun Kamboja
+                        const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6 * scale, 1), leafMat);
+                        foliage.position.set(Math.cos(ang) * 1.8 * scale, 5.2 * scale, Math.sin(ang) * 1.8 * scale);
+                        foliage.castShadow = true;
+                        treeGroup.add(foliage);
+
+                        // Bunga Kamboja Putih Kuning
+                        for (let fl = 0; fl < 4; fl++) {
+                            const flw = new THREE.Mesh(new THREE.SphereGeometry(0.22 * scale, 6, 6), flowerMat);
+                            flw.position.set(
+                                Math.cos(ang) * 1.8 * scale + (Math.random() - 0.5) * 1.8 * scale,
+                                5.3 * scale + (Math.random() - 0.5) * 1.2 * scale,
+                                Math.sin(ang) * 1.8 * scale + (Math.random() - 0.5) * 1.8 * scale
+                            );
+                            treeGroup.add(flw);
+                        }
+                    });
+
+                    treeGroup.position.set(fx, 0, fz);
+                    return treeGroup;
+                };
+
+                [[-26, 26, 1.1], [26, 26, 1.2], [-26, -26, 1.05], [26, -26, 1.15],
+                 [-38, 2, 1.25], [38, -4, 1.2], [4, -38, 1.15], [-2, 38, 1.1]].forEach(([fx, fz, fscale]) => {
+                    gardenGroup.add(createFrangipaniTree(fx, fz, fscale));
+                });
+
+                // J. Rumpun Daun Pisang Hias Tropis (Banana Leaf Clusters)
+                const createBananaCluster = (bx, bz, scale = 1) => {
+                    const bGroup = new THREE.Group();
+                    const bLeafMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.4, side: THREE.DoubleSide });
+                    const leafCount = 7;
+                    for (let i = 0; i < leafCount; i++) {
+                        const ang = (i / leafCount) * Math.PI * 2;
+                        const leafGeo = new THREE.CylinderGeometry(0.08, 0.9 * scale, 3.8 * scale, 4);
+                        const leaf = new THREE.Mesh(leafGeo, bLeafMat);
+                        leaf.rotation.z = Math.PI / 3.2;
+                        leaf.rotation.y = ang;
+                        leaf.position.y = 1.8 * scale;
+                        leaf.castShadow = true;
+                        bGroup.add(leaf);
+                    }
+                    bGroup.position.set(bx, 0, bz);
+                    return bGroup;
+                };
+
+                [[-22, 10, 1.1], [-22, -10, 1.2], [22, 12, 1.15], [22, -12, 1.0],
+                 [10, 22, 1.2], [-10, 22, 1.1], [12, -22, 1.1], [-12, -22, 1.25],
+                 [-30, 18, 1.3], [30, -18, 1.35], [-32, -18, 1.2], [32, 20, 1.25]].forEach(([bx, bz, bscale]) => {
+                    gardenGroup.add(createBananaCluster(bx, bz, bscale));
+                });
+
+                // K. Kolam Teratai & Ikan Koi Bali
+                const pondGroup = new THREE.Group();
+                const pondRim = new THREE.Mesh(new THREE.TorusGeometry(5.2, 0.45, 12, 32), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85 }));
+                pondRim.rotation.x = Math.PI / 2; pondRim.position.y = 0.12;
+                pondGroup.add(pondRim);
+
+                const water = new THREE.Mesh(new THREE.CircleGeometry(5.1, 32), new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.35, transparent: true, opacity: 0.85 }));
+                water.rotation.x = -Math.PI / 2; water.position.y = 0.08;
+                pondGroup.add(water);
+
+                // Daun Teratai (Lily Pads) & Bunga Teratai Merah Muda
+                const lilyMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.4 });
+                const lotusMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.2 });
+                for (let l = 0; l < 8; l++) {
+                    const lang = (l / 8) * Math.PI * 2;
+                    const lr = 1.4 + Math.random() * 2.6;
+                    const lx = Math.cos(lang) * lr;
+                    const lz = Math.sin(lang) * lr;
+
+                    const pad = new THREE.Mesh(new THREE.CircleGeometry(0.7, 16), lilyMat);
+                    pad.rotation.x = -Math.PI / 2; pad.position.set(lx, 0.1, lz);
+                    pondGroup.add(pad);
+
+                    if (l % 2 === 0) {
+                        const lotus = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), lotusMat);
+                        lotus.position.set(lx, 0.24, lz);
+                        pondGroup.add(lotus);
+                    }
+                }
+                pondGroup.position.set(34, 0, -14);
+                gardenGroup.add(pondGroup);
+
+                // 4. BASE PAPAN 3D MONOPOLI BALI
                 const boardGroup = new THREE.Group();
                 boardGroupRef.current = boardGroup;
 
-                const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(32, 1.4, 32), new THREE.MeshStandardMaterial({ color: 0x1f1610, roughness: 0.4, metalness: 0.1 }));
+                const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(32, 1.4, 32), new THREE.MeshStandardMaterial({ color: 0x1f1610, roughness: 0.35, metalness: 0.15 }));
                 baseMesh.position.y = 0.7; baseMesh.receiveShadow = true; baseMesh.castShadow = true;
                 boardGroup.add(baseMesh);
 
@@ -727,94 +1081,61 @@
                 trimMesh.position.y = 1.42;
                 boardGroup.add(trimMesh);
 
-                // Seni & Desain Tengah Papan 3D (Tampil Sempurna Tanpa Masalah CORS)
-                const createCenterMandalaCanvas = () => {
-                    const cvs = document.createElement('canvas');
-                    cvs.width = 1024; cvs.height = 1024;
-                    const c = cvs.getContext('2d');
+                // 5. WALLPAPER ASLI MONOPOLI BALI DI BAGIAN TENGAH BOARD (Zero-CORS High-Res)
+                const centerCanvas = document.createElement('canvas');
+                centerCanvas.width = 1024; centerCanvas.height = 1024;
+                const cctx = centerCanvas.getContext('2d');
 
-                    // Gradasi latar belakang kayu mahoni & zamrud gelap Bali
-                    const grad = c.createRadialGradient(512, 512, 80, 512, 512, 512);
-                    grad.addColorStop(0, '#064e3b');
-                    grad.addColorStop(0.55, '#043427');
-                    grad.addColorStop(0.85, '#19201a');
-                    grad.addColorStop(1, '#15100c');
-                    c.fillStyle = grad;
-                    c.fillRect(0, 0, 1024, 1024);
+                // Latar awal elegan sebelum image siap
+                const defGrad = cctx.createRadialGradient(512, 512, 80, 512, 512, 512);
+                defGrad.addColorStop(0, '#064e3b');
+                defGrad.addColorStop(0.55, '#043427');
+                defGrad.addColorStop(0.85, '#19201a');
+                defGrad.addColorStop(1, '#15100c');
+                cctx.fillStyle = defGrad;
+                cctx.fillRect(0, 0, 1024, 1024);
 
-                    // Bingkai ukiran emas ganda
-                    c.strokeStyle = '#d97706';
-                    c.lineWidth = 16;
-                    c.strokeRect(25, 25, 974, 974);
-                    c.strokeStyle = '#f59e0b';
-                    c.lineWidth = 6;
-                    c.strokeRect(42, 42, 940, 940);
-
-                    // Mandala Bunga Teratai Bali
-                    c.save();
-                    c.translate(512, 512);
-                    c.strokeStyle = 'rgba(245, 158, 11, 0.4)';
-                    c.lineWidth = 4;
-                    for (let i = 0; i < 16; i++) {
-                        c.rotate(Math.PI / 8);
-                        c.beginPath();
-                        c.ellipse(0, 220, 80, 240, 0, 0, Math.PI * 2);
-                        c.stroke();
-                    }
-                    c.restore();
-
-                    // Medali Pusat
-                    c.beginPath();
-                    c.arc(512, 512, 290, 0, Math.PI * 2);
-                    c.fillStyle = 'rgba(15, 23, 42, 0.88)';
-                    c.fill();
-                    c.strokeStyle = '#f59e0b';
-                    c.lineWidth = 10;
-                    c.stroke();
-
-                    // Tipografi Tengah
-                    c.fillStyle = '#fef08a';
-                    c.font = 'bold 36px -apple-system, sans-serif';
-                    c.textAlign = 'center';
-                    c.textBaseline = 'middle';
-                    c.fillText('EDISI PARIWISATA & BUDAYA', 512, 420);
-
-                    c.fillStyle = '#ffffff';
-                    c.font = '900 86px -apple-system, sans-serif';
-                    c.fillText('MONOPOLI', 512, 495);
-
-                    c.fillStyle = '#f59e0b';
-                    c.font = '900 80px -apple-system, sans-serif';
-                    c.fillText('BALI 3D', 512, 575);
-
-                    c.fillStyle = '#94a3b8';
-                    c.font = 'bold 28px sans-serif';
-                    c.fillText('PULAU DEWATA • REPUBLIK INDONESIA', 512, 650);
-
-                    return cvs;
-                };
-
-                const centerTex = new THREE.CanvasTexture(createCenterMandalaCanvas());
+                const centerTex = new THREE.CanvasTexture(centerCanvas);
                 centerTex.anisotropy = 16;
-                const centerMat = new THREE.MeshStandardMaterial({ map: centerTex, roughness: 0.55 });
+                const centerMat = new THREE.MeshStandardMaterial({ map: centerTex, roughness: 0.42, metalness: 0.08 });
                 const centerMesh = new THREE.Mesh(new THREE.PlaneGeometry(21.4, 21.4), centerMat);
                 centerMesh.rotation.x = -Math.PI / 2;
                 centerMesh.position.y = 1.44;
                 centerMesh.receiveShadow = true;
                 boardGroup.add(centerMesh);
 
-                // Muat Gambar Aset Jika Tersedia (Tanpa CORS Error)
-                const centerImg = new Image();
-                centerImg.src = "Gemini_Generated_Image_djzwuldjzwuldjzw.png";
-                centerImg.onload = () => {
+                // Fungsi Render Wallpaper Monopoli Bali ke Canvas dengan Bingkai Ukir Emas
+                const renderCenterWallpaper = (img) => {
                     try {
-                        const artTex = new THREE.Texture(centerImg);
-                        artTex.needsUpdate = true;
-                        artTex.anisotropy = 16;
-                        centerMesh.material.map = artTex;
-                        centerMesh.material.needsUpdate = true;
-                    } catch(e) {}
+                        cctx.clearRect(0, 0, 1024, 1024);
+                        cctx.drawImage(img, 0, 0, 1024, 1024);
+
+                        // Bingkai ukiran emas ganda khas Bali
+                        cctx.strokeStyle = '#d97706';
+                        cctx.lineWidth = 14;
+                        cctx.strokeRect(7, 7, 1010, 1010);
+                        cctx.strokeStyle = '#f59e0b';
+                        cctx.lineWidth = 4;
+                        cctx.strokeRect(18, 18, 988, 988);
+
+                        centerTex.needsUpdate = true;
+                        centerMat.needsUpdate = true;
+                    } catch(e) {
+                        console.warn("Wallpaper render notice:", e);
+                    }
                 };
+
+                const centerImg = new Image();
+                centerImg.crossOrigin = "anonymous";
+                centerImg.onload = () => {
+                    renderCenterWallpaper(centerImg);
+                };
+                // Prioritaskan data URI base64 dari window.MONOPOLI_CENTER_BG (100% bebas kendala CORS)
+                const wpSource = window.MONOPOLI_CENTER_BG || "board_center_bg.jpg";
+                centerImg.src = wpSource;
+                if (centerImg.complete) {
+                    renderCenterWallpaper(centerImg);
+                }
 
                 // Tambahkan 2 Dek Kartu 3D di Tengah Papan (Kesempatan & Dana Punia)
                 const create3DCardDeck = (label, colorHex, posX, posZ, rotY) => {
@@ -1084,6 +1405,103 @@
 
                 chestGroup.position.set(parkCoords.x, 1.5, parkCoords.z);
                 group.add(chestGroup);
+
+                // 1B. Tampilkan Podium / Papan Plakat 3D Kas Daerah & Parkir Bebas di Tengah Papan
+                const centerPotGroup = new THREE.Group();
+
+                // Stand & Pedestal Kayu Mahoni & Emas
+                const potBase = new THREE.Mesh(
+                    new THREE.BoxGeometry(9.6, 0.35, 3.2),
+                    new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.35, metalness: 0.25 })
+                );
+                potBase.position.y = 0.18;
+                centerPotGroup.add(potBase);
+
+                const potTrim = new THREE.Mesh(
+                    new THREE.BoxGeometry(9.9, 0.1, 3.5),
+                    new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.85 })
+                );
+                potTrim.position.y = 0.38;
+                centerPotGroup.add(potTrim);
+
+                // Bokor Sesari Emas di Sisi Kiri & Kanan Berisi Koin
+                [-4.1, 4.1].forEach(bx => {
+                    const bokor = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.8, 0.45, 0.5, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.18, metalness: 0.88 })
+                    );
+                    bokor.position.set(bx, 0.6, 0);
+                    centerPotGroup.add(bokor);
+
+                    const coins = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.7, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+                        new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.2, metalness: 0.9 })
+                    );
+                    coins.position.set(bx, 0.8, 0);
+                    centerPotGroup.add(coins);
+                });
+
+                // Plakat Papan Display Miring Menghadap Sudut Kamera
+                const plaqueBack = new THREE.Mesh(
+                    new THREE.BoxGeometry(7.6, 2.5, 0.18),
+                    new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.3, metalness: 0.4 })
+                );
+                plaqueBack.position.set(0, 1.45, 0.15);
+                plaqueBack.rotation.x = -Math.PI / 6.5;
+                centerPotGroup.add(plaqueBack);
+
+                // Canvas Resolusi Tinggi untuk Angka & Judul Kas Daerah
+                const cpCvs = document.createElement('canvas');
+                cpCvs.width = 768; cpCvs.height = 256;
+                const cpctx = cpCvs.getContext('2d');
+
+                // Latar Gradasi Zamrud Gelap Mewah
+                const potGrad = cpctx.createLinearGradient(0, 0, 768, 256);
+                potGrad.addColorStop(0, '#064e3b');
+                potGrad.addColorStop(0.5, '#022c22');
+                potGrad.addColorStop(1, '#064e3b');
+                cpctx.fillStyle = potGrad;
+                cpctx.fillRect(0, 0, 768, 256);
+
+                // Bingkai Ganda Emas
+                cpctx.strokeStyle = '#f59e0b';
+                cpctx.lineWidth = 10;
+                cpctx.strokeRect(6, 6, 756, 244);
+                cpctx.strokeStyle = '#d97706';
+                cpctx.lineWidth = 4;
+                cpctx.strokeRect(16, 16, 736, 224);
+
+                // Header
+                cpctx.fillStyle = '#fef08a';
+                cpctx.font = 'bold 26px -apple-system, sans-serif';
+                cpctx.textAlign = 'center';
+                cpctx.textBaseline = 'middle';
+                cpctx.fillText('🏛️ KAS DAERAH & PARKIR BEBAS 🅿️', 384, 50);
+
+                // Nominal Terkumpul (Besar & Hijau Neon Bercahaya)
+                cpctx.fillStyle = '#4ade80';
+                cpctx.font = '900 60px -apple-system, sans-serif';
+                cpctx.shadowColor = 'rgba(74, 222, 128, 0.6)';
+                cpctx.shadowBlur = 16;
+                cpctx.fillText(`Rp ${freeParkingPot.toLocaleString('id-ID')}`, 384, 130);
+                cpctx.shadowBlur = 0;
+
+                // Subtitle
+                cpctx.fillStyle = '#cbd5e1';
+                cpctx.font = 'bold 18px -apple-system, sans-serif';
+                cpctx.fillText('Akumulasi Pajak, Tilang, & Tebusan Penjara', 384, 198);
+
+                const plaqueFront = new THREE.Mesh(
+                    new THREE.PlaneGeometry(7.5, 2.45),
+                    new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(cpCvs), roughness: 0.35 })
+                );
+                plaqueFront.position.set(0, 1.45, 0.26);
+                plaqueFront.rotation.x = -Math.PI / 6.5;
+                centerPotGroup.add(plaqueFront);
+
+                // Letakkan di tengah papan bagian atas (antara dua dek kartu)
+                centerPotGroup.position.set(0, 1.44, -5.8);
+                group.add(centerPotGroup);
 
                 // 2. Tanda Kepemilikan 3D & Bangunan di Setiap Petak
                 board.forEach(space => {
