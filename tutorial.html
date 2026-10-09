@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial & Panduan Resmi Monopoli Bali</title>
+    <style>
+        :root {
+            --primary: #064e3b;
+            --primary-dark: #022c22;
+            --primary-light: #ecfdf5;
+            --secondary: #d97706;
+            --secondary-light: #fef3c7;
+            --dark: #1e293b;
+            --slate: #475569;
+            --light-bg: #f8fafc;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--dark);
+            background-color: #f1f5f9;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Action Bar (Screen Only) */
+        .action-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-bar-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-print:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        /* Document Container */
+        .page-container {
+            max-width: 900px;
+            margin: 24px auto 48px;
+            background: white;
+            padding: 48px 56px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        /* Header Banner */
+        .doc-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #043e2f 100%);
+            color: white;
+            padding: 36px 32px;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 32px;
+            border-bottom: 5px solid var(--secondary);
+        }
+
+        .doc-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .doc-header .subtitle {
+            font-size: 1.1rem;
+            color: #fde68a;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .doc-header .meta-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Section Headings */
+        h2 {
+            font-size: 1.35rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin-top: 36px;
+            margin-bottom: 16px;
+            padding: 8px 14px;
+            background: var(--primary-light);
+            border-left: 5px solid var(--primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            color: var(--secondary);
+            font-weight: 750;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 12px;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        /* List Items */
+        ul {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 8px;
+            font-size: 0.93rem;
+            color: #334155;
+        }
+
+        li::before {
+            content: "▪";
+            position: absolute;
+            left: 6px;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        li strong {
+            color: var(--dark);
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 16px 0 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 750;
+            padding: 10px 14px;
+            border: 1px solid #043e2f;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            color: #334155;
+        }
+
+        tr:nth-child(even) td {
+            background-color: var(--light-bg);
+        }
+
+        tr:hover td {
+            background-color: #f1f5f9;
+        }
+
+        /* Callout Cards */
+        .callout {
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .callout-info {
+            background-color: var(--primary-light);
+            border-left: 5px solid var(--primary);
+            border-top: 1px solid #a7f3d0;
+            border-right: 1px solid #a7f3d0;
+            border-bottom: 1px solid #a7f3d0;
+        }
+
+        .callout-info .callout-title {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.98rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-warn {
+            background-color: var(--danger-light);
+            border-left: 5px solid var(--danger);
+            border-top: 1px solid #fecaca;
+            border-right: 1px solid #fecaca;
+            border-bottom: 1px solid #fecaca;
+        }
+
+        .callout-warn .callout-title {
+            color: var(--danger);
+            font-weight: 800;
+            font-size: 0.98rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-tip {
+            background-color: var(--secondary-light);
+            border-left: 5px solid var(--secondary);
+            border-top: 1px solid #fde68a;
+            border-right: 1px solid #fde68a;
+            border-bottom: 1px solid #fde68a;
+        }
+
+        .callout-tip .callout-title {
+            color: var(--secondary);
+            font-weight: 800;
+            font-size: 0.98rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-desc {
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        /* Step Card */
+        .step-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .step-item {
+            background: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .step-num {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .step-title {
+            font-weight: 750;
+            font-size: 0.92rem;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .step-text {
+            font-size: 0.84rem;
+            color: var(--slate);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 750;
+            color: white;
+        }
+
+        /* Document Footer */
+        .doc-footer {
+            margin-top: 48px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--slate);
+            font-size: 0.82rem;
+        }
+
+        /* PRINT OPTIMIZATIONS */
+        @media print {
+            body {
+                background: white;
+                color: #000;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .page-container {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .doc-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: var(--primary) !important;
+                color: white !important;
+                border-bottom: 4px solid var(--secondary) !important;
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+
+            h2 {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: var(--primary-light) !important;
+                color: var(--primary) !important;
+                border-left: 4px solid var(--primary) !important;
+                break-after: avoid;
+                page-break-after: avoid;
+                margin-top: 24px;
+            }
+
+            h3 {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: var(--primary) !important;
+                color: white !important;
+            }
+
+            tr:nth-child(even) td {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: #f8fafc !important;
+            }
+
+            .callout {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .callout-info {
+                background-color: var(--primary-light) !important;
+                border-left: 4px solid var(--primary) !important;
+            }
+
+            .callout-warn {
+                background-color: var(--danger-light) !important;
+                border-left: 4px solid var(--danger) !important;
+            }
+
+            .callout-tip {
+                background-color: var(--secondary-light) !important;
+                border-left: 4px solid var(--secondary) !important;
+            }
+
+            .table-responsive {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            @page {
+                size: A4;
+                margin: 15mm 15mm 15mm 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Bar (Hidden on Print) -->
+    <div class="action-bar no-print">
+        <div class="action-bar-title">
+            <span>🎲</span>
+            <span>Buku Panduan Monopoli Bali</span>
+        </div>
+        <div class="action-buttons">
+            <a href="index.html" class="btn btn-secondary">🎮 Buka Game</a>
+            <button onclick="window.print()" class="btn btn-print">🖨️ Cetak / Simpan ke PDF</button>
+        </div>
+    </div>
+
+    <!-- Main Document -->
+    <div class="page-container">
+
+        <!-- Header Banner -->
+        <div class="doc-header">
+            <h1>MONOPOLI BALI</h1>
+            <div class="subtitle">Buku Panduan Lengkap &amp; Aturan Resmi Permainan</div>
+            <div class="meta-tag">Versi Interaktif Web App • Denpasar, Bali • Dilengkapi Auto-End Turn</div>
+        </div>
+
+        <!-- 1. Pengenalan -->
+        <h2>1. PENGENALAN PERMAINAN</h2>
+        <p><strong>Monopoli Bali</strong> adalah adaptasi digital interaktif dari permainan papan klasik Monopoli yang menggabungkan keseruan strategi transaksi properti dengan kekayaan destinasi wisata, geografi, dan kebudayaan Pulau Dewata. Pemain akan berlomba membangun kerajaan pariwisata terkuat dari Pantai Kuta hingga kawasan resor bintang lima ITDC Nusa Dua.</p>
+        
+        <ul>
+            <li><strong>Tujuan Permainan:</strong> Mengumpulkan aset properti sebanyak-banyaknya, membangun kawasan pariwisata (rumah dan hotel), mengelola perputaran uang dengan bijak, dan menjadi pemain terakhir yang bertahan setelah seluruh lawan dinyatakan bangkrut.</li>
+            <li><strong>Modal Awal:</strong> Setiap pemain memulai permainan dengan saldo tunai sebesar <strong>Rp 150.000</strong>.</li>
+            <li><strong>Papan 40 Petak:</strong> Terdiri atas 22 kavling wisata berzona warna, 4 jalur pelabuhan dan bandara, 2 perusahaan fasilitas (PLN &amp; PDAM Bali), petak Dana Punia, petak Kesempatan, serta area istimewa seperti Parkir Bebas dan Penjara Kerobokan.</li>
+            <li><strong>Pilihan Token Pion:</strong> Karakter pion bernuansa khas Pulau Dewata: Papan Selancar (🏄), Skuter Matic (🛵), Bunga Kamboja (🌺), Perahu Kano (🛶), Kerang Laut (🐚), Kacamata Hitam (🕶️), Topeng Barong (🎭), Pohon Kelapa (🌴), Perahu Layar (⛵), dan Pulau Tropis (🏝️).</li>
+        </ul>
+
+        <!-- 2. Panduan Memulai Game -->
+        <h2>2. CARA MEMBUKA &amp; MEMULAI GAME</h2>
+        <p>Anda dapat memainkan game ini langsung di browser tanpa perlu instalasi aplikasi tambahan:</p>
+
+        <div class="step-grid">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-title">Buka Berkas HTML</div>
+                <div class="step-text">Buka folder <strong>Monopoli bali</strong> di komputer Anda dan klik ganda <strong>index.html</strong> di browser favorit (Safari, Chrome, Firefox, dll.).</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-title">Layar Login (Host)</div>
+                <div class="step-text">Masukkan nama Anda di kolom <strong>Username</strong> dan isi <strong>Password</strong> (bebas untuk sesi lokal), lalu klik <strong>Main Lokal</strong>.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-title">Atur Pemain di Lobby</div>
+                <div class="step-text">Klik <strong>Tambah Bot</strong> untuk lawan AI komputer otomatis, atau <strong>Tambah Player</strong> untuk bermain bersama teman di satu layar.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-title">Mulai Pertandingan</div>
+                <div class="step-text">Pilih token dan warna identitas masing-masing pemain, lalu klik tombol hijau <strong>Mulai Game</strong>.</div>
+            </div>
+        </div>
+
+        <!-- 3. Alur Giliran -->
+        <h2>3. ALUR GILIRAN (TURN FLOW)</h2>
+        <p>Permainan berjalan bergiliran searah jarum jam dengan siklus tahapan sebagai berikut:</p>
+
+        <ul>
+            <li><strong>1. Fase Lempar Dadu (Roll Phase):</strong> Tekan tombol kocok dadu di tengah arena papan. Kedua dadu virtual akan berputar dengan animasi 3D dan token melompat otomatis sesuai akumulasi angka dadu.</li>
+            <li><strong>Aturan Dadu Kembar (Double):</strong> Jika kedua dadu menghasilkan angka yang sama (misal 5 &amp; 5), pemain berhak melempar dadu sekali lagi setelah gilirannya selesai.</li>
+            <li><strong>Batas Tilang 3x Double:</strong> Jika pemain melempar dadu kembar sebanyak 3 kali berturut-turut dalam satu giliran, pemain dianggap ngebut melanggar aturan dan langsung digelandang ke Penjara Kerobokan!</li>
+            <li><strong>2. Fase Aksi Petak (Action Phase):</strong> Mendarat di petak kosong memberikan pilihan untuk membeli atau melewati. Mendarat di kavling lawan mewajibkan pembayaran sewa. Mendarat di kavling milik sendiri membuka menu pendirian bangunan.</li>
+            <li><strong>3. Fase Selesai (End Phase):</strong> Setelah seluruh transaksi tuntas, tombol merah <strong>🛑 Akhiri Giliran</strong> akan aktif untuk menyerahkan langkah ke pemain selanjutnya.</li>
+        </ul>
+
+        <!-- Callout Fitur 5 Detik -->
+        <div class="callout callout-info">
+            <div class="callout-title">
+                <span>⏱️</span>
+                <span>FITUR BARU: AUTO-END TURN 5 DETIK</span>
+            </div>
+            <div class="callout-desc">
+                Agar tempo pertandingan tetap seru dan dinamis, tombol <strong>🛑 Akhiri Giliran</strong> dilengkapi dengan penghitung waktu mundur otomatis selama <strong>5 detik</strong>. Jika pemain tidak menekan tombol dalam waktu 5 detik setelah aksinya tuntas, sistem akan secara otomatis mengakhiri giliran dan mengoper langkah ke pemain berikutnya. Pemain tetap dapat menekan tombol secara manual kapan saja tanpa menunggu timer habis.
+            </div>
+        </div>
+
+        <!-- 4. Tabel Properti -->
+        <h2>4. DAFTAR PROPERTI, HARGA, &amp; SEWA</h2>
+        <p>Berikut adalah spesifikasi lengkap 22 kavling destinasi wisata Bali beserta kelompok zona warna dan nilai ekonomisnya:</p>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Zona Warna</th>
+                        <th>Destinasi Wisata</th>
+                        <th>Harga Beli</th>
+                        <th>Sewa Dasar</th>
+                        <th>Sewa Hotel (Maksimal)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge" style="background:#8b4513;">Cokelat</span></td><td>Pantai Kuta</td><td>Rp 6.000</td><td>Rp 200</td><td>Rp 2.500</td></tr>
+                    <tr><td><span class="badge" style="background:#8b4513;">Cokelat</span></td><td>Jalan Legian</td><td>Rp 6.000</td><td>Rp 400</td><td>Rp 4.500</td></tr>
+                    <tr><td><span class="badge" style="background:#87ceeb; color:#0f172a;">Biru Langit</span></td><td>Pantai Sanur</td><td>Rp 10.000</td><td>Rp 600</td><td>Rp 7.500</td></tr>
+                    <tr><td><span class="badge" style="background:#87ceeb; color:#0f172a;">Biru Langit</span></td><td>Renon Denpasar</td><td>Rp 10.000</td><td>Rp 600</td><td>Rp 7.500</td></tr>
+                    <tr><td><span class="badge" style="background:#87ceeb; color:#0f172a;">Biru Langit</span></td><td>Kota Denpasar</td><td>Rp 12.000</td><td>Rp 800</td><td>Rp 9.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ff69b4;">Merah Muda</span></td><td>Pasar Sukawati</td><td>Rp 14.000</td><td>Rp 1.000</td><td>Rp 11.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ff69b4;">Merah Muda</span></td><td>Monkey Forest Ubud</td><td>Rp 14.000</td><td>Rp 1.000</td><td>Rp 11.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ff69b4;">Merah Muda</span></td><td>Tegalalang Rice Terrace</td><td>Rp 16.000</td><td>Rp 1.200</td><td>Rp 13.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ffa500; color:#0f172a;">Oranye</span></td><td>Desa Munduk</td><td>Rp 18.000</td><td>Rp 1.400</td><td>Rp 15.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ffa500; color:#0f172a;">Oranye</span></td><td>Kintamani Batur</td><td>Rp 18.000</td><td>Rp 1.400</td><td>Rp 15.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ffa500; color:#0f172a;">Oranye</span></td><td>Danau Bedugul</td><td>Rp 20.000</td><td>Rp 1.600</td><td>Rp 17.500</td></tr>
+                    <tr><td><span class="badge" style="background:#ef4444;">Merah</span></td><td>GWK Cultural Park</td><td>Rp 22.000</td><td>Rp 1.800</td><td>Rp 19.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ef4444;">Merah</span></td><td>Pantai Jimbaran</td><td>Rp 22.000</td><td>Rp 1.800</td><td>Rp 19.000</td></tr>
+                    <tr><td><span class="badge" style="background:#ef4444;">Merah</span></td><td>Pura Uluwatu</td><td>Rp 24.000</td><td>Rp 2.000</td><td>Rp 21.000</td></tr>
+                    <tr><td><span class="badge" style="background:#eab308; color:#0f172a;">Kuning</span></td><td>Seminyak</td><td>Rp 26.000</td><td>Rp 2.200</td><td>Rp 23.000</td></tr>
+                    <tr><td><span class="badge" style="background:#eab308; color:#0f172a;">Kuning</span></td><td>Petitenget</td><td>Rp 26.000</td><td>Rp 2.200</td><td>Rp 23.000</td></tr>
+                    <tr><td><span class="badge" style="background:#eab308; color:#0f172a;">Kuning</span></td><td>Canggu Hipster Beach</td><td>Rp 28.000</td><td>Rp 2.400</td><td>Rp 25.000</td></tr>
+                    <tr><td><span class="badge" style="background:#22c55e;">Hijau</span></td><td>Nusa Lembongan</td><td>Rp 30.000</td><td>Rp 2.600</td><td>Rp 27.500</td></tr>
+                    <tr><td><span class="badge" style="background:#22c55e;">Hijau</span></td><td>Nusa Penida Kelingking</td><td>Rp 30.000</td><td>Rp 2.600</td><td>Rp 27.500</td></tr>
+                    <tr><td><span class="badge" style="background:#22c55e;">Hijau</span></td><td>Tanjung Benoa Watersport</td><td>Rp 32.000</td><td>Rp 2.800</td><td>Rp 30.000</td></tr>
+                    <tr><td><span class="badge" style="background:#1e3a8a;">Biru Tua</span></td><td>Pura Tanah Lot</td><td>Rp 35.000</td><td>Rp 3.500</td><td>Rp 35.000</td></tr>
+                    <tr><td><span class="badge" style="background:#1e3a8a;">Biru Tua</span></td><td>ITDC Nusa Dua Resort</td><td>Rp 40.000</td><td>Rp 5.000</td><td>Rp 45.000</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Aturan Mendirikan Bangunan (Rumah &amp; Hotel)</h3>
+        <ul>
+            <li><strong>Syarat Monopoli:</strong> Pemain hanya dapat mulai membangun jika telah memiliki seluruh kavling tanah dalam satu kelompok warna yang sama.</li>
+            <li><strong>Rumah Hijau (Maksimal 4 Unit):</strong> Setiap penambahan rumah akan melipatgandakan tarif sewa secara signifikan.</li>
+            <li><strong>Hotel Merah (Investasi Puncak):</strong> Setelah kavling memiliki 4 rumah, tanah dapat ditingkatkan menjadi 1 Hotel Mewah yang memberikan imbal hasil sewa tertinggi.</li>
+        </ul>
+
+        <!-- 5. Transportasi & Fasilitas -->
+        <h2>5. TRANSPORTASI &amp; FASILITAS UMUM</h2>
+        <p>Infrastruktur vital merupakan tambang pendapatan pasif yang sangat menguntungkan di sepanjang permainan:</p>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jenis Aset</th>
+                        <th>Nama Lokasi</th>
+                        <th>Harga Beli</th>
+                        <th>Ketentuan Tarif Sewa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>🚢 Pelabuhan</td><td>Pelabuhan Gilimanuk</td><td>Rp 20.000</td><td>Sewa dasar Rp 2.500 (naik 2x, 3x, hingga 4x jika menguasai pelabuhan lain).</td></tr>
+                    <tr><td>🚢 Pelabuhan</td><td>Pelabuhan Padangbai</td><td>Rp 20.000</td><td>Pintu transit Lombok; tarif meningkat seiring jumlah pelabuhan yang dikuasai.</td></tr>
+                    <tr><td>🚢 Pelabuhan</td><td>Pelabuhan Sanur</td><td>Rp 20.000</td><td>Dermaga kapal cepat Nusa Penida; tarif berlipat ganda per kepemilikan.</td></tr>
+                    <tr><td>✈️ Bandara</td><td>Bandara Ngurah Rai</td><td>Rp 20.000</td><td>Gerbang udara internasional; titik transit paling sering dilalui lawan.</td></tr>
+                    <tr><td>⚡ Fasilitas</td><td>PLN Bali</td><td>Rp 15.000</td><td>Sewa dihitung berdasarkan kelipatan angka dadu pemain yang mendarat.</td></tr>
+                    <tr><td>💧 Fasilitas</td><td>PDAM Bali</td><td>Rp 15.000</td><td>Jika memiliki PLN &amp; PDAM sekaligus, pengali sewa dadu melonjak 2,5x lipat.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 6. Petak Khusus -->
+        <h2>6. PETAK KHUSUS &amp; KARTU PERISTIWA</h2>
+        <ul>
+            <li><strong>Petak GO (Titik Start):</strong> Melewati petak GO memberikan gaji sebesar Rp 20.000. Mendarat tepat di petak GO memberikan bonus spesial Rp 30.000.</li>
+            <li><strong>Kartu Dana Punia (Kotak Amal/Sosial):</strong> Mengangkat tradisi luhur Bali dalam beramal. Berisi dividen pariwisata, sumbangan upacara adat, santunan banjar, atau hadiah bantuan tunai.</li>
+            <li><strong>Kartu Kesempatan (Chance):</strong> Berisi peristiwa mendadak: tiket penerbangan langsung ke Nusa Dua, parade festival budaya, tilang polisi lalu lintas, atau biaya renovasi vila.</li>
+            <li><strong>Pajak Wisatawan &amp; Pajak Vila:</strong> Mendarat di petak Pajak Wisatawan membayar Rp 20.000 dan Pajak Vila membayar Rp 10.000 ke kas daerah.</li>
+            <li><strong>Parkir Bebas (Jackpot &amp; Free Travel):</strong> Area netral tanpa biaya sewa. Pemain dapat mengklaim seluruh pot jackpot pajak yang terkumpul atau memilih terbang bebas ke kavling mana pun di papan!</li>
+        </ul>
+
+        <!-- Callout Penjara -->
+        <div class="callout callout-warn">
+            <div class="callout-title">
+                <span>🚔</span>
+                <span>ATURAN PENJARA KEROBOKAN</span>
+            </div>
+            <div class="callout-desc">
+                Pemain dapat dijebloskan ke Penjara Kerobokan jika: (1) Mendarat di petak Kantor Polisi, (2) Menarik kartu Kesempatan 'Masuk Penjara', atau (3) Melempar dadu kembar 3 kali beruntun.<br><br>
+                <strong>Cara Bebas dari Penjara:</strong><br>
+                1. Membayar uang jaminan denda sebesar <strong>Rp 5.000</strong> saat giliran Anda tiba.<br>
+                2. Menggunakan Kartu Bebas Penjara.<br>
+                3. Mencoba melempar dadu kembar (double) pada salah satu dari 3 putaran giliran berikutnya.
+            </div>
+        </div>
+
+        <!-- 7. Manajemen Keuangan & Tips -->
+        <h2>7. MANAJEMEN KEUANGAN &amp; KEMENANGAN</h2>
+        <ul>
+            <li><strong>Hipotek Properti (Gadai Tanah):</strong> Bila saldo kas menipis saat harus melunasi sewa, pemain dapat menggadaikan sertifikat tanah ke bank untuk mendapatkan dana tunai sebesar 50% harga beli. Tanah terhipotek tidak menghasilkan uang sewa.</li>
+            <li><strong>Tebus Hipotek (Unmortgage):</strong> Menebus tanah membutuhkan pengembalian pokok pinjaman ditambah bunga 10%. Segera tebus tanah di jalur ramai agar kembali menghasilkan sewa.</li>
+            <li><strong>Jual Kembali Bangunan:</strong> Rumah atau hotel dapat dijual kembali ke bank sebesar 75% dari biaya pembangunan awal saat membutuhkan likuiditas darurat.</li>
+            <li><strong>Barter Antar Pemain (Trade):</strong> Klik kavling milik pemain lain untuk mengajukan penawaran beli atau tukar guling dengan kompensasi uang tunai demi menyempurnakan set warna.</li>
+            <li><strong>Kondisi Bangkrut (Game Over):</strong> Jika seluruh uang tunai, hasil gadai tanah, dan penjualan bangunan tidak lagi cukup melunasi tagihan, pemain resmi gugur. Pemain terakhir yang tersisa di papan dinobatkan sebagai <strong>Sang Juara Monopoli Bali!</strong></li>
+        </ul>
+
+        <!-- Callout Tips -->
+        <div class="callout callout-tip">
+            <div class="callout-title">
+                <span>💡</span>
+                <span>TIPS &amp; TRIK MENANG JUARA</span>
+            </div>
+            <div class="callout-desc">
+                1. <strong>Beli Agresif di Putaran Awal:</strong> Jangan biarkan kavling kosong terlewat pada 2 putaran pertama untuk mempercepat pembentukan monopoli satu set warna.<br>
+                2. <strong>Jaga Cadangan Kas Darurat:</strong> Sisakan uang tunai minimal Rp 25.000 – Rp 40.000 saat pemain lain mulai mendirikan rumah agar Anda tidak rentan bangkrut.<br>
+                3. <strong>Kuasai Jalur Transportasi:</strong> Memiliki 3 atau 4 pelabuhan/bandara menjamin aliran kas masuk yang konsisten di setiap putaran.
+            </div>
+        </div>
+
+        <!-- Document Footer -->
+        <div class="doc-footer">
+            <div>© 2026 Monopoli Bali • Tema Budaya &amp; Wisata Pulau Dewata</div>
+            <div>Buku Panduan Resmi • Siap Cetak A4 / Simpan PDF</div>
+        </div>
+
+    </div>
+
+</body>
+</html>
