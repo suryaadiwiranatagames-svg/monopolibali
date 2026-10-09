@@ -1076,8 +1076,7 @@
             { text: "Kapal cepat penuh berkah. Maju ke Nusa Penida.", action: "move", target: 32 },
             { text: "Shortcut Tol Bali Mandara. Maju 5 langkah.", action: "move_relative", amount: 5 },
             { text: "Promosi destinasi viral. Terima Rp 12.000.", action: "money", amount: 12000 },
-            { text: "Denda parkir liar dekat pantai. Bayar Rp 7.500.", action: "money", amount: -7500 },
-            { text: "🌴 Event Musiman: Musim Liburan Turis! Sewa di Pantai Kuta, Seminyak, dan Canggu melonjak 2x lipat!", action: "tourist_season" }
+            { text: "Denda parkir liar dekat pantai. Bayar Rp 7.500.", action: "money", amount: -7500 }
         ];
 
         const chestCards = [
@@ -1098,7 +1097,7 @@
             { text: "Terciduk Pecalang. Masuk Penjara!", action: "jail" }
         ];
 
-        const tokenChoices = ["🏄", "🛵", "🌺", "🛶", "🐚", "🕶️", "🎭", "🌴", "⛵", "🏝️", "🐕", "🛕", "☕"];
+        const tokenChoices = ["🏄", "🛵", "🌺", "🛶", "🐚", "🕶️", "🎭", "🌴", "⛵", "🏝️"];
         const playerColors = ["#ef4444", "#2563eb", "#db2777", "#f97316", "#16a34a", "#7c3aed"];
         const FREE_PARKING_CLAIM_LIMIT = 40000;
         const SELL_BACK_RATE = 0.75;
@@ -1186,11 +1185,6 @@
 	            const [turnPhase, setTurnPhase] = React.useState('ROLL'); // ROLL, MOVE, CONFIRM, ACTION, CARD, PARKING_DESTINATION, DEBT, WIN, END
 	            const [turnStartedAt, setTurnStartedAt] = React.useState(Date.now());
 	            const [autoEndCountdown, setAutoEndCountdown] = React.useState(5);
-	            const [startingMoney, setStartingMoney] = React.useState(150000);
-	            const [touristSeasonTurns, setTouristSeasonTurns] = React.useState(0);
-	            const [musicVolume, setMusicVolume] = React.useState(0.28);
-	            const [isSfxMuted, setIsSfxMuted] = React.useState(false);
-	            const [totalTurnsCount, setTotalTurnsCount] = React.useState(1);
             const [logs, setLogs] = React.useState(["Selamat datang di Monopoli Bali!"]);
             const [freeParkingPot, setFreeParkingPot] = React.useState(0);
             const [jackpotHistory, setJackpotHistory] = React.useState([]);
@@ -1405,7 +1399,7 @@
             };
 
             const playSound = React.useCallback((type) => {
-                if (isMuted || isSfxMuted) return;
+                if (isMuted) return;
                 const ctx = getAudioContext();
                 if (!ctx) return;
 
@@ -1442,13 +1436,13 @@
                     playTone(ctx, { freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.07 });
                     playTone(ctx, { freq: 140, duration: 0.26, type: 'sawtooth', gain: 0.06, startOffset: 0.16 });
                 }
-            }, [isMuted, isSfxMuted, getAudioContext]);
+            }, [isMuted, getAudioContext]);
 
             React.useEffect(() => {
                 const music = new Audio(BACKGROUND_MUSIC_FILE);
                 music.loop = true;
                 music.preload = 'auto';
-                music.volume = musicVolume;
+                music.volume = 0.28;
                 backgroundMusicRef.current = music;
                 return () => {
                     music.pause();
@@ -1459,7 +1453,6 @@
             React.useEffect(() => {
                 const music = backgroundMusicRef.current;
                 if (!music) return;
-                music.volume = musicVolume;
                 music.muted = isMuted || !isMusicOn;
 
                 if (!isAudioUnlocked || isMuted || !isMusicOn) {
@@ -1473,7 +1466,7 @@
                         setIsAudioUnlocked(false);
                     });
                 }
-            }, [isAudioUnlocked, isMuted, isMusicOn, musicVolume]);
+            }, [isAudioUnlocked, isMuted, isMusicOn]);
 
             // --- EFEK VISUAL DADU LOKAL (ANIMASI MULUS UNTUK SEMUA PEMAIN) ---
 	            React.useEffect(() => {
@@ -2376,7 +2369,7 @@
                     name: player.name.trim() || (player.isBot ? `Bot ${index + 1}` : `Player ${index + 1}`),
                     token: player.token,
                     color: player.color,
-                    money: startingMoney,
+                    money: 150000,
                     position: 0,
                     isBot: player.isBot,
                     inJail: false,
@@ -2389,8 +2382,6 @@
 	                setTurnIndex(0);
 	                setTurnPhase('ROLL');
 	                setTurnStartedAt(Date.now());
-	                setTotalTurnsCount(1);
-	                setTouristSeasonTurns(0);
                 setLogs([`Room ${roomName.trim()} dimulai oleh ${hostName}.`]);
                 setFreeParkingPot(0);
                 setJackpotHistory([]);
@@ -2508,9 +2499,6 @@
                     const houseMultipliers = [1, 3, 7, 14, 24];
                     baseRent = space.hotel ? space.rent * 40 : space.rent * houseMultipliers[space.houses || 0];
                     if (hasCompleteColorGroup(space)) baseRent = Math.ceil(baseRent * COMPLETE_COLOR_RENT_MULTIPLIER);
-                    if (touristSeasonTurns > 0 && [1, 26, 29].includes(space.id)) {
-                        baseRent = baseRent * 2;
-                    }
                 }
 
                 const ownerInJail = space.owner !== undefined && players[space.owner]?.inJail;
@@ -3628,19 +3616,7 @@
             const handleApplyCard = () => {
                 addLog(`Kartu: ${activeCard.text}`);
                 
-                if (activeCard.action === 'tourist_season') {
-                    const activeRounds = Math.max(players.length, 3);
-                    setTouristSeasonTurns(activeRounds);
-                    addLog(`🌴 EVENT MUSIMAN AKTIF: Musim Liburan Turis! Sewa di Pantai Kuta, Seminyak, & Canggu melonjak 2x lipat selama ${activeRounds} giliran!`);
-                    updateTurnSummary({
-                        title: '🌴 Musim Liburan Turis!',
-                        detail: `Sewa di Pantai Kuta, Seminyak, dan Canggu naik 2x lipat selama ${activeRounds} giliran!`,
-                        amount: null,
-                        tone: 'gain'
-                    });
-                    setTurnPhase(shouldRollAgain() ? 'ROLL' : 'END');
-                }
-                else if (activeCard.action === 'money') {
+	                if (activeCard.action === 'money') {
 	                    adjustPlayerMoney(currentPlayer.id, activeCard.amount);
 	                    if (activeCard.amount < 0) {
 	                        addToFreeParkingPot(Math.abs(activeCard.amount), activeCard.text, currentPlayer.name);
@@ -3940,8 +3916,6 @@
 
             const endTurn = () => {
                 localActionPublishUntilRef.current = Date.now() + 1500;
-                setTouristSeasonTurns(prev => Math.max(0, prev - 1));
-                setTotalTurnsCount(prev => prev + 1);
                 if (shouldRollAgain()) {
                     // Double berlanjut, tidak ganti giliran, tapi fase diset dari dalam handle function
                 } else {
@@ -4228,43 +4202,6 @@
                                         </div>
                                     )}
 
-                                    {(!isOnline || isHost) && (
-                                        <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-3.5">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
-                                                    <span>💰</span>
-                                                    <span>Pilihan Modal Awal Permainan</span>
-                                                </span>
-                                                <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                                    Aktif: Rp {startingMoney.toLocaleString('id-ID')}
-                                                </span>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setStartingMoney(100000)}
-                                                    className={`py-2 px-3 rounded-lg font-black text-xs transition-all border text-center ${startingMoney === 100000 ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}`}
-                                                >
-                                                    ⚡ Cepat<br/><span className="text-[0.65rem] opacity-90 font-medium">Rp 100.000</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setStartingMoney(150000)}
-                                                    className={`py-2 px-3 rounded-lg font-black text-xs transition-all border text-center ${startingMoney === 150000 ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}`}
-                                                >
-                                                    ⭐ Standar<br/><span className="text-[0.65rem] opacity-90 font-medium">Rp 150.000</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setStartingMoney(250000)}
-                                                    className={`py-2 px-3 rounded-lg font-black text-xs transition-all border text-center ${startingMoney === 250000 ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}`}
-                                                >
-                                                    👑 Sultan<br/><span className="text-[0.65rem] opacity-90 font-medium">Rp 250.000</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {setupError && <p className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg p-3">{setupError}</p>}
 
                                     <div className="grid gap-3">
@@ -4313,7 +4250,7 @@
                                         <p>Player asli: {lobbyPlayers.filter(player => !player.isBot).length}</p>
                                         <p>Bot: {lobbyPlayers.filter(player => player.isBot).length}</p>
                                         <p>Total pemain: {lobbyPlayers.length}/6</p>
-                                        <p>Uang awal: Rp {startingMoney.toLocaleString('id-ID')}</p>
+                                        <p>Uang awal: Rp 150.000</p>
                                     </div>
                                     {(!isOnline || isHost) ? (
                                         <button onClick={startRoomGame} className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-3 font-black shadow-lg transition-colors">
@@ -4341,56 +4278,6 @@
 
             return (
                 <div className="flex flex-col xl:flex-row gap-6 w-full relative">
-                    {/* Widget Kontrol Audio & SFX */}
-                    <div className="fixed top-3 right-3 z-[9999] flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full border border-white/20 shadow-2xl text-xs font-bold">
-                        <button 
-                            type="button"
-                            onClick={() => setIsSfxMuted(!isSfxMuted)} 
-                            title={isSfxMuted ? "Aktifkan Efek Suara (SFX)" : "Bisukan Efek Suara (SFX)"}
-                            className={`px-2 py-0.5 rounded-full text-[0.72rem] font-black transition-all ${isSfxMuted ? 'bg-red-500/30 text-red-300 border border-red-500/40' : 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'}`}
-                        >
-                            {isSfxMuted ? "🔇 SFX Off" : "🎲 SFX On"}
-                        </button>
-                        <div className="h-3.5 w-px bg-white/20"></div>
-                        <span className="text-[0.72rem] text-slate-300 flex items-center gap-1">
-                            <span>🎵</span>
-                            <span>BGM:</span>
-                        </span>
-                        <input 
-                            type="range" 
-                            min="0" 
-                            max="1" 
-                            step="0.05" 
-                            value={musicVolume} 
-                            onChange={(e) => {
-                                const v = parseFloat(e.target.value);
-                                setMusicVolume(v);
-                                if (backgroundMusicRef.current) {
-                                    backgroundMusicRef.current.volume = v;
-                                    if (v === 0) backgroundMusicRef.current.muted = true;
-                                    else {
-                                        backgroundMusicRef.current.muted = false;
-                                        if (isMusicOn && !isMuted) backgroundMusicRef.current.play().catch(() => {});
-                                    }
-                                }
-                            }} 
-                            className="w-16 h-1.5 accent-emerald-500 rounded-lg cursor-pointer bg-slate-700" 
-                            title={`Volume Musik: ${Math.round(musicVolume * 100)}%`}
-                        />
-                        <span className="text-[0.65rem] text-slate-400 font-mono w-7 text-right">
-                            {Math.round(musicVolume * 100)}%
-                        </span>
-                    </div>
-
-                    {/* Banner Event Musiman Bali Jika Aktif */}
-                    {touristSeasonTurns > 0 && (
-                        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[9990] bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 py-1.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2 animate-bounce">
-                            <span className="text-base">🌴</span>
-                            <span className="text-xs font-black tracking-wide drop-shadow">
-                                MUSIM LIBURAN TURIS! Sewa Kuta, Seminyak, Canggu 2x Lipat (Sisa {touristSeasonTurns} giliran)
-                            </span>
-                        </div>
-                    )}
                     {moneyEffects.map((effect) => (
                         <div key={effect.id} className={`cash-flyer ${effect.direction || ''}`}>
                             <div className="rupiah-bill">
@@ -4757,118 +4644,22 @@
 	                                        </div>
 	                                    )}
 
-	                                    {turnPhase === 'WIN' && winner && (() => {
-                                        const calcNetWorth = (p) => {
-                                            const assets = board.filter(s => s.owner === p.id);
-                                            const assetVal = assets.reduce((sum, s) => {
-                                                let val = s.price || 0;
-                                                if (s.houses) val += (s.houses * (getBuildCost(s) || 5000));
-                                                if (s.hotel) val += (5 * (getBuildCost(s) || 5000));
-                                                return sum + val;
-                                            }, 0);
-                                            return Math.max(0, p.money) + assetVal;
-                                        };
-
-                                        const mostPropsPlayer = [...players].sort((a, b) => {
-                                            const countA = board.filter(s => s.owner === a.id).length;
-                                            const countB = board.filter(s => s.owner === b.id).length;
-                                            return countB - countA;
-                                        })[0];
-                                        const mostPropsCount = mostPropsPlayer ? board.filter(s => s.owner === mostPropsPlayer.id).length : 0;
-
-                                        const richestPlayer = [...players].sort((a, b) => calcNetWorth(b) - calcNetWorth(a))[0];
-
-                                        const sortedLeaderboard = [...players].sort((a, b) => {
-                                            if (a.bankrupt && !b.bankrupt) return 1;
-                                            if (!a.bankrupt && b.bankrupt) return -1;
-                                            return calcNetWorth(b) - calcNetWorth(a);
-                                        });
-
-                                        return (
-                                            <div className="property-action-overlay animate-pop-in">
-                                                <div className="action-card bg-white rounded-2xl shadow-2xl text-center w-full max-w-lg border-4 border-amber-500 overflow-hidden relative max-h-[90vh] flex flex-col">
-                                                    <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white py-5 px-6 shrink-0 relative">
-                                                        <div className="text-5xl mb-1 animate-bounce">🏆</div>
-                                                        <p className="text-xs font-black uppercase tracking-widest text-amber-100">Permainan Selesai</p>
-                                                        <h3 className="font-black text-2xl uppercase tracking-wide drop-shadow-md">
-                                                            {winner.token} {winner.name} Sang Juara!
-                                                        </h3>
-                                                    </div>
-
-                                                    <div className="p-5 overflow-y-auto space-y-4">
-                                                        {/* Ringkasan 3 Statistik Kunci */}
-                                                        <div className="grid grid-cols-3 gap-2.5">
-                                                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-center">
-                                                                <span className="text-[0.65rem] font-black uppercase text-amber-700 block">Total Putaran</span>
-                                                                <span className="text-lg font-black text-amber-900">{totalTurnsCount}</span>
-                                                                <span className="text-[0.62rem] text-slate-500 block">Giliran</span>
-                                                            </div>
-                                                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-center">
-                                                                <span className="text-[0.65rem] font-black uppercase text-emerald-700 block">Raja Properti</span>
-                                                                <span className="text-sm font-black text-emerald-900 truncate block">{mostPropsPlayer?.name || '-'}</span>
-                                                                <span className="text-[0.62rem] text-slate-500 block">{mostPropsCount} Properti</span>
-                                                            </div>
-                                                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 text-center">
-                                                                <span className="text-[0.65rem] font-black uppercase text-blue-700 block">Pemain Terkaya</span>
-                                                                <span className="text-sm font-black text-blue-900 truncate block">{richestPlayer?.name || '-'}</span>
-                                                                <span className="text-[0.62rem] text-slate-500 block">Rp {calcNetWorth(richestPlayer || winner).toLocaleString('id-ID')}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Tabel Papan Peringkat / Leaderboard */}
-                                                        <div className="border border-slate-200 rounded-xl overflow-hidden text-left shadow-sm">
-                                                            <div className="bg-slate-900 text-white px-3.5 py-2 flex items-center justify-between">
-                                                                <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-                                                                    <span>🎖️</span>
-                                                                    <span>Papan Peringkat Akhir</span>
-                                                                </span>
-                                                                <span className="text-[0.68rem] text-slate-400 font-semibold">Total Aset (Kas + Properti)</span>
-                                                            </div>
-                                                            <div className="divide-y divide-slate-100">
-                                                                {sortedLeaderboard.map((p, idx) => {
-                                                                    const pNetWorth = calcNetWorth(p);
-                                                                    const pAssets = board.filter(s => s.owner === p.id);
-                                                                    return (
-                                                                        <div key={p.id} className={`p-3 flex items-center justify-between text-xs ${idx === 0 ? 'bg-amber-50/60 font-bold' : p.bankrupt ? 'bg-red-50/40 opacity-70' : 'bg-white'}`}>
-                                                                            <div className="flex items-center gap-2.5">
-                                                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[0.7rem] ${idx === 0 ? 'bg-amber-500 text-white' : idx === 1 ? 'bg-slate-300 text-slate-800' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                                                                                    {idx + 1}
-                                                                                </span>
-                                                                                <span className="text-lg">{p.token}</span>
-                                                                                <div>
-                                                                                    <span className="font-black text-slate-900 block leading-tight">{p.name}</span>
-                                                                                    <span className="text-[0.65rem] text-slate-500 font-normal">
-                                                                                        {p.bankrupt ? '💀 Bangkrut' : `${pAssets.length} Properti`}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="text-right">
-                                                                                <span className="font-black text-slate-900 block">
-                                                                                    Rp {pNetWorth.toLocaleString('id-ID')}
-                                                                                </span>
-                                                                                <span className="text-[0.65rem] text-slate-500 block">
-                                                                                    Kas: Rp {Math.max(0, p.money).toLocaleString('id-ID')}
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex gap-3 justify-center">
-                                                        <button onClick={() => setScreen('LOBBY')} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-black shadow transition-colors">
-                                                            Kembali ke Lobby
-                                                        </button>
-                                                        <button onClick={startRoomGame} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black shadow transition-colors">
-                                                            Main Lagi
-                                                        </button>
-                                                    </div>
-                                                </div>
+	                                    {turnPhase === 'WIN' && winner && (
+	                                        <div className="animate-pop-in bg-white rounded-xl shadow-2xl text-center w-full max-w-[20rem] border-2 border-amber-500 overflow-hidden">
+                                            <div className="bg-amber-500 text-white py-4 px-4">
+                                                <div className="text-5xl mb-2">{winner.token}</div>
+                                                <h3 className="font-black text-2xl uppercase">{winner.name} Menang</h3>
                                             </div>
-                                        );
-                                    })()}
+                                            <div className="p-4">
+                                                <p className="text-sm font-bold text-gray-700 mb-4">
+                                                    Semua lawan sudah bangkrut. Total saldo akhir Rp {winner.money.toLocaleString('id-ID')}.
+                                                </p>
+                                                <button onClick={() => setScreen('LOBBY')} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-xl font-black shadow">
+                                                    Kembali ke Lobby
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {turnPhase === 'PARKING_DESTINATION' && canTakeAction && pendingAction && (
                                         <div className="action-card animate-pop-in bg-white rounded-xl shadow-2xl text-center w-full max-w-[22rem] border-2 border-blue-800 overflow-hidden">
