@@ -256,14 +256,52 @@
 
         const LOCAL_STORAGE_SAVE_KEY = 'monopoli_bali_3d_local_save';
 
-        // Helpers Properti
+        // Helpers Properti (Geometri Presisi Zero-Collision untuk 4 Sudut & 36 Petak Regular)
         const getTileCoordinates = (index) => {
-            const halfSize = 13.5;
-            const step = 2.7;
-            if (index <= 10) return { x: halfSize - (index * step), z: halfSize, rotY: 0 };
-            if (index <= 20) return { x: -halfSize, z: halfSize - ((index - 10) * step), rotY: Math.PI / 2 };
-            if (index <= 30) return { x: -halfSize + ((index - 20) * step), z: -halfSize, rotY: Math.PI };
-            return { x: halfSize, z: -halfSize + ((index - 30) * step), rotY: -Math.PI / 2 };
+            const halfBoard = 14.6;
+            const cornerSize = 4.0;
+            const innerEdge = halfBoard - cornerSize; // 10.6
+            const availableSpan = innerEdge * 2; // 21.2
+            const step = availableSpan / 9; // ~2.35555
+            const cornerCenter = halfBoard - (cornerSize / 2); // 12.6
+
+            // Sisi Bawah: Index 0 s.d 10 (Kanan ke Kiri)
+            if (index === 0) {
+                return { x: cornerCenter, z: cornerCenter, rotY: 0, isCorner: true };
+            }
+            if (index < 10) {
+                const k = index; // 1..9
+                const x = innerEdge - ((k - 0.5) * step);
+                return { x: x, z: cornerCenter, rotY: 0, isCorner: false };
+            }
+            if (index === 10) {
+                return { x: -cornerCenter, z: cornerCenter, rotY: 0, isCorner: true };
+            }
+
+            // Sisi Kiri: Index 11 s.d 20 (Bawah ke Atas)
+            if (index < 20) {
+                const k = index - 10; // 1..9
+                const z = innerEdge - ((k - 0.5) * step);
+                return { x: -cornerCenter, z: z, rotY: Math.PI / 2, isCorner: false };
+            }
+            if (index === 20) {
+                return { x: -cornerCenter, z: -cornerCenter, rotY: Math.PI / 2, isCorner: true };
+            }
+
+            // Sisi Atas: Index 21 s.d 30 (Kiri ke Kanan)
+            if (index < 30) {
+                const k = index - 20; // 1..9
+                const x = -innerEdge + ((k - 0.5) * step);
+                return { x: x, z: -cornerCenter, rotY: Math.PI, isCorner: false };
+            }
+            if (index === 30) {
+                return { x: cornerCenter, z: -cornerCenter, rotY: Math.PI, isCorner: true };
+            }
+
+            // Sisi Kanan: Index 31 s.d 39 (Atas ke Bawah)
+            const k = index - 30; // 1..9
+            const z = -innerEdge + ((k - 0.5) * step);
+            return { x: cornerCenter, z: z, rotY: -Math.PI / 2, isCorner: false };
         };
 
         const isOwnable = (space) => ['property', 'port', 'utility'].includes(space?.type);
@@ -311,83 +349,174 @@
             };
         };
 
-        // Tekstur Petak Canvas Resolusi Tinggi (512x720) & Kontras Tajam
+        // Tekstur Petak Canvas Resolusi Tinggi & Proporsional (Sudut 512x512, Regular 512x910)
         const createTileTexture = (space) => {
+            const isCorner = [0, 10, 20, 30].includes(space.id);
             const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 720;
+            canvas.width = 512;
+            canvas.height = isCorner ? 512 : 910;
             const ctx = canvas.getContext('2d');
 
-            // Latar belakang kartu gading lembut (anti-silau)
+            // Latar belakang kartu gading lembut anti-silau
             ctx.fillStyle = "#fcfbfa";
-            ctx.fillRect(0, 0, 512, 720);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Bingkai ganda kartu
             ctx.strokeStyle = "#94a3b8";
-            ctx.lineWidth = 12;
-            ctx.strokeRect(6, 6, 500, 708);
+            ctx.lineWidth = 10;
+            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
 
             ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
             ctx.lineWidth = 4;
-            ctx.strokeRect(20, 20, 472, 680);
+            ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
 
-            // Baris Warna Properti
-            if (space.type === 'property' && space.color) {
-                ctx.fillStyle = space.color;
-                ctx.fillRect(12, 12, 488, 175);
-                ctx.strokeStyle = "rgba(0,0,0,0.35)";
-                ctx.lineWidth = 6;
-                ctx.strokeRect(12, 12, 488, 175);
+            if (isCorner) {
+                // --- DESAIN KHUSUS PETAK SUDUT PERSEGI (512x512) ---
+                if (space.id === 0) {
+                    // Petak 0: GO / MULAI
+                    ctx.fillStyle = "#dc2626";
+                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 46px -apple-system, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("MULAI (GO)", 256, 65);
 
-                // Trim aksen emas di bawah color bar
-                ctx.fillStyle = "#d97706";
-                ctx.fillRect(12, 182, 488, 10);
+                    ctx.font = "110px sans-serif";
+                    ctx.fillText("🏁", 256, 215);
+
+                    ctx.fillStyle = "#065f46";
+                    ctx.font = "900 32px sans-serif";
+                    ctx.fillText("LEWAT: +Rp 20.000", 256, 335);
+
+                    ctx.fillStyle = "#b45309";
+                    ctx.font = "900 28px sans-serif";
+                    ctx.fillText("PAS: +Rp 30.000", 256, 390);
+
+                    ctx.fillStyle = "#dc2626";
+                    ctx.font = "900 50px sans-serif";
+                    ctx.fillText("⬅️", 256, 450);
+                } else if (space.id === 10) {
+                    // Petak 10: PENJARA KEROBOKAN
+                    ctx.fillStyle = "#334155";
+                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 38px -apple-system, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("PENJARA KEROBOKAN", 256, 65);
+
+                    ctx.font = "110px sans-serif";
+                    ctx.fillText("🔒", 256, 215);
+
+                    ctx.fillStyle = "#1e293b";
+                    ctx.font = "900 32px sans-serif";
+                    ctx.fillText("HANYA BERKUNJUNG", 256, 335);
+
+                    ctx.fillStyle = "#b45309";
+                    ctx.font = "bold 26px sans-serif";
+                    ctx.fillText("Tebusan Denda: Rp 5.000", 256, 390);
+
+                    ctx.fillStyle = "#64748b";
+                    ctx.font = "bold 22px sans-serif";
+                    ctx.fillText("Atau lempar dadu kembar", 256, 445);
+                } else if (space.id === 20) {
+                    // Petak 20: PARKIR BEBAS
+                    ctx.fillStyle = "#d97706";
+                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 42px -apple-system, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("PARKIR BEBAS", 256, 65);
+
+                    ctx.font = "110px sans-serif";
+                    ctx.fillText("🅿️", 256, 215);
+
+                    ctx.fillStyle = "#065f46";
+                    ctx.font = "900 32px sans-serif";
+                    ctx.fillText("REST AREA & KAS", 256, 335);
+
+                    ctx.fillStyle = "#475569";
+                    ctx.font = "bold 26px sans-serif";
+                    ctx.fillText("Klaim Kas / Terbang Bebas", 256, 395);
+                } else if (space.id === 30) {
+                    // Petak 30: KANTOR POLISI
+                    ctx.fillStyle = "#1e3a8a";
+                    ctx.fillRect(10, 10, 492, 110);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 40px -apple-system, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("KANTOR POLISI", 256, 65);
+
+                    ctx.font = "110px sans-serif";
+                    ctx.fillText("🚔", 256, 215);
+
+                    ctx.fillStyle = "#dc2626";
+                    ctx.font = "900 34px sans-serif";
+                    ctx.fillText("MASUK PENJARA!", 256, 335);
+
+                    ctx.fillStyle = "#475569";
+                    ctx.font = "bold 26px sans-serif";
+                    ctx.fillText("Langsung menuju Petak 10", 256, 395);
+                }
             } else {
-                ctx.fillStyle = "#e2e8f0";
-                ctx.fillRect(12, 12, 488, 130);
-                ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                ctx.lineWidth = 6;
-                ctx.strokeRect(12, 12, 488, 130);
-            }
+                // --- DESAIN PETAK REGULAR (512x910) ---
+                if (space.type === 'property' && space.color) {
+                    ctx.fillStyle = space.color;
+                    ctx.fillRect(10, 10, 492, 210);
+                    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+                    ctx.lineWidth = 6;
+                    ctx.strokeRect(10, 10, 492, 210);
 
-            // Nama Petak (Font Tebal Hitam Solid, Jelas & Mudah Dibaca)
-            ctx.fillStyle = "#090d16";
-            ctx.font = "900 42px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#d97706";
+                    ctx.fillRect(10, 220, 492, 12);
+                } else {
+                    ctx.fillStyle = "#e2e8f0";
+                    ctx.fillRect(10, 10, 492, 150);
+                    ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                    ctx.lineWidth = 6;
+                    ctx.strokeRect(10, 10, 492, 150);
+                }
 
-            const words = space.name.split(" ");
-            if (words.length > 2) {
-                ctx.fillText(words.slice(0, 2).join(" "), 256, 260);
-                ctx.fillText(words.slice(2).join(" "), 256, 315);
-            } else if (words.length === 2) {
-                ctx.fillText(words[0], 256, 260);
-                ctx.fillText(words[1], 256, 315);
-            } else {
-                ctx.fillText(space.name, 256, 280);
-            }
+                ctx.fillStyle = "#090d16";
+                ctx.font = "900 46px -apple-system, BlinkMacSystemFont, sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
 
-            // Ikon Petak Besar & Tajam
-            ctx.font = "84px sans-serif";
-            const icons = { go: "🏁", port: "🚢", utility: "⚡", chance: "❓", chest: "🎁", jail: "🔒", gotojail: "🚔", parking: "🅿️", tax: "💰" };
-            ctx.fillText(icons[space.type] || "🏖️", 256, 440);
+                const words = space.name.split(" ");
+                if (words.length > 2) {
+                    ctx.fillText(words.slice(0, 2).join(" "), 256, 310);
+                    ctx.fillText(words.slice(2).join(" "), 256, 370);
+                } else if (words.length === 2) {
+                    ctx.fillText(words[0], 256, 310);
+                    ctx.fillText(words[1], 256, 370);
+                } else {
+                    ctx.fillText(space.name, 256, 330);
+                }
 
-            // Badge Harga Beli (Pill Hijau Zamrud dengan Teks Putih Tebal)
-            if (space.price) {
-                const px = 64, py = 575, pw = 384, ph = 80;
-                ctx.fillStyle = "#064e3b";
-                ctx.beginPath();
-                ctx.arc(px + 40, py + 40, 40, Math.PI / 2, Math.PI * 1.5);
-                ctx.arc(px + pw - 40, py + 40, 40, Math.PI * 1.5, Math.PI / 2);
-                ctx.closePath();
-                ctx.fill();
+                ctx.font = "96px sans-serif";
+                const icons = { go: "🏁", port: "🚢", utility: "⚡", chance: "❓", chest: "🎁", jail: "🔒", gotojail: "🚔", parking: "🅿️", tax: "💰" };
+                ctx.fillText(icons[space.type] || "🏖️", 256, 530);
 
-                ctx.strokeStyle = "#10b981";
-                ctx.lineWidth = 5;
-                ctx.stroke();
+                if (space.price) {
+                    const px = 54, py = 730, pw = 404, ph = 95;
+                    ctx.fillStyle = "#064e3b";
+                    ctx.beginPath();
+                    ctx.arc(px + 47, py + 47, 47, Math.PI / 2, Math.PI * 1.5);
+                    ctx.arc(px + pw - 47, py + 47, 47, Math.PI * 1.5, Math.PI / 2);
+                    ctx.closePath();
+                    ctx.fill();
 
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "900 36px sans-serif";
-                ctx.fillText(`Rp ${space.price.toLocaleString('id-ID')}`, 256, py + 42);
+                    ctx.strokeStyle = "#10b981";
+                    ctx.lineWidth = 6;
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 42px sans-serif";
+                    ctx.fillText(`Rp ${space.price.toLocaleString('id-ID')}`, 256, py + 49);
+                }
             }
 
             const texture = new THREE.CanvasTexture(canvas);
@@ -395,7 +524,7 @@
             return texture;
         };
 
-        const createDiceTexture = (number) => {
+                const createDiceTexture = (number) => {
             const canvas = document.createElement('canvas');
             canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d');
@@ -1098,7 +1227,7 @@
                 const centerTex = new THREE.CanvasTexture(centerCanvas);
                 centerTex.anisotropy = 16;
                 const centerMat = new THREE.MeshStandardMaterial({ map: centerTex, roughness: 0.42, metalness: 0.08 });
-                const centerMesh = new THREE.Mesh(new THREE.PlaneGeometry(21.4, 21.4), centerMat);
+                const centerMesh = new THREE.Mesh(new THREE.PlaneGeometry(21.2, 21.2), centerMat);
                 centerMesh.rotation.x = -Math.PI / 2;
                 centerMesh.position.y = 1.44;
                 centerMesh.receiveShadow = true;
@@ -1178,7 +1307,7 @@
                 boardData.forEach((space) => {
                     const coords = getTileCoordinates(space.id);
                     const isCorner = [0, 10, 20, 30].includes(space.id);
-                    const tileGeo = new THREE.BoxGeometry(isCorner ? 3.4 : 2.5, 0.18, isCorner ? 3.4 : 4.4);
+                    const tileGeo = new THREE.BoxGeometry(isCorner ? 4.0 : 2.25, 0.18, 4.0);
                     const tileTexture = createTileTexture(space);
                     const materials = [
                         new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }),
@@ -1512,12 +1641,12 @@
                         const owner = players[space.owner];
                         if (owner) {
                             const markerGroup = new THREE.Group();
-                            // Pita Tebal Berwarna Pemilik di Tepi Petak
+                            // Pita Tebal Berwarna Pemilik di Tepi Petak (Proporsional Lebar 2.15)
                             const ribbon = new THREE.Mesh(
-                                new THREE.BoxGeometry(2.35, 0.16, 0.55),
+                                new THREE.BoxGeometry(2.15, 0.16, 0.45),
                                 new THREE.MeshStandardMaterial({ color: owner.color, roughness: 0.2, metalness: 0.45 })
                             );
-                            ribbon.position.set(0, 0.08, 1.85);
+                            ribbon.position.set(0, 0.08, 1.7);
                             markerGroup.add(ribbon);
 
                             // Lencana Karakter Pemilik Mengambang
@@ -1531,8 +1660,8 @@
                             bctx.fillText(owner.token, 48, 52);
 
                             const bSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(bCvs) }));
-                            bSprite.position.set(0, 0.9, 1.6);
-                            bSprite.scale.set(0.9, 0.9, 0.9);
+                            bSprite.position.set(0, 0.9, 1.5);
+                            bSprite.scale.set(0.85, 0.85, 0.85);
                             markerGroup.add(bSprite);
 
                             // Ikon Gembok jika Terhipotek
@@ -1555,30 +1684,27 @@
                         }
                     }
 
-                    // B. Bangunan 3D Rumah Hijau & Hotel Merah
+                    // B. Bangunan 3D Rumah Hijau & Hotel Merah (Tersusun Rapi di Atas Bar Warna)
                     if (space.type === 'property' && (space.houses > 0 || space.hotel)) {
+                        const bldGroup = new THREE.Group();
+                        bldGroup.position.set(coords.x, 1.5, coords.z);
+                        bldGroup.rotation.y = coords.rotY;
+
                         if (space.hotel) {
-                            const hGroup = new THREE.Group();
-                            const bMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.8), new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 }));
-                            bMesh.position.y = 0.4; hGroup.add(bMesh);
-                            const rMesh = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.7, 4), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2 }));
-                            rMesh.position.y = 1.15; rMesh.rotation.y = Math.PI / 4; hGroup.add(rMesh);
-                            hGroup.position.set(coords.x, 1.6, coords.z);
-                            hGroup.rotation.y = coords.rotY;
-                            group.add(hGroup);
+                            const bMesh = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.75), new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 }));
+                            bMesh.position.set(0, 0.38, -1.2); bldGroup.add(bMesh);
+                            const rMesh = new THREE.Mesh(new THREE.ConeGeometry(0.85, 0.65, 4), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2 }));
+                            rMesh.position.set(0, 1.05, -1.2); rMesh.rotation.y = Math.PI / 4; bldGroup.add(rMesh);
                         } else {
                             for (let h = 0; h < space.houses; h++) {
-                                const houseGroup = new THREE.Group();
-                                const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.5), new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 }));
-                                b.position.y = 0.2; houseGroup.add(b);
-                                const r = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.35, 4), new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.4 }));
-                                r.position.y = 0.55; r.rotation.y = Math.PI / 4; houseGroup.add(r);
-                                const offset = (h - (space.houses - 1) / 2) * 0.55;
-                                houseGroup.position.set(coords.x + offset, 1.6, coords.z);
-                                houseGroup.rotation.y = coords.rotY;
-                                group.add(houseGroup);
+                                const hOffset = (h - (space.houses - 1) / 2) * 0.48;
+                                const b = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.38, 0.44), new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 }));
+                                b.position.set(hOffset, 0.19, -1.2); bldGroup.add(b);
+                                const r = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.3, 4), new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.4 }));
+                                r.position.set(hOffset, 0.52, -1.2); r.rotation.y = Math.PI / 4; bldGroup.add(r);
                             }
                         }
+                        group.add(bldGroup);
                     }
                 });
             }, [board, players, freeParkingPot, screen]);
