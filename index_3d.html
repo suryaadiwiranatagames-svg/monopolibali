@@ -2774,24 +2774,65 @@
                             </div>
                         )}
 
-                        {/* Modal Pilihan Parkir Bebas */}
+                        {/* Modal Pilihan Parkir Bebas (Lengkap dengan Seluruh Destinasi & Klaim Kas) */}
                         {parkingChoiceActive && canTakeAction && (
-                            <div className="self-center interactive animate-pop-in glass-panel rounded-2xl p-5 border-2 border-blue-400 max-w-md w-full mx-4 text-white text-center shadow-2xl">
-                                <div className="text-4xl mb-2">🅿️</div>
-                                <h3 className="text-xl font-black text-blue-300 uppercase mb-2">Pilihan Parkir Bebas</h3>
-                                <p className="text-xs text-slate-300 mb-4">Pilih klaim jackpot yang terkumpul, atau terbang langsung ke destinasi mana pun di papan!</p>
+                            <div className="self-center interactive animate-pop-in glass-panel rounded-2xl p-5 border-2 border-amber-400 max-w-lg w-full mx-4 text-white text-center shadow-2xl">
+                                <div className="text-4xl mb-1">🅿️</div>
+                                <h3 className="text-xl font-black text-amber-300 uppercase mb-1">Pilihan Parkir Bebas</h3>
+                                <p className="text-xs text-slate-300 mb-4">
+                                    Mendarat di Parkir Bebas! Silakan pilih salah satu hak istimewa Anda:
+                                </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                                    <button onClick={chooseParkingJackpot} className="p-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-black text-xs shadow">
-                                        Klaim Jackpot<br/><span className="text-[0.65rem] opacity-90">Rp {Math.min(freeParkingPot, FREE_PARKING_CLAIM_LIMIT).toLocaleString('id-ID')}</span>
+                                    {/* Opsi 1: Klaim Kas Daerah / Dana Denda */}
+                                    <button
+                                        onClick={chooseParkingJackpot}
+                                        className="p-4 bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 border border-emerald-400/50 rounded-xl font-black text-xs shadow-lg flex flex-col items-center justify-center transition-all hover:scale-[1.02]"
+                                    >
+                                        <span className="text-2xl mb-1">💰</span>
+                                        <span className="text-sm font-black text-white block">Ambil Dana Kas</span>
+                                        <span className="text-xs text-amber-300 font-extrabold mt-1">
+                                            Rp {Math.min(freeParkingPot, FREE_PARKING_CLAIM_LIMIT).toLocaleString('id-ID')}
+                                        </span>
+                                        <span className="text-[0.62rem] text-emerald-200 opacity-80 mt-0.5">
+                                            {freeParkingPot > 0 ? 'Klaim seluruh denda terkumpul' : '(Kas saat ini kosong)'}
+                                        </span>
                                     </button>
-                                    <div className="p-2 bg-slate-800/70 border border-slate-700 rounded-xl max-h-36 overflow-y-auto space-y-1 text-left">
-                                        <span className="text-[0.65rem] font-black uppercase text-slate-400 block mb-1">Pilih Terbang Ke:</span>
-                                        {board.filter(isOwnable).slice(0, 10).map(s => (
-                                            <button key={s.id} onClick={() => chooseParkingDestination(s.id)} className="w-full text-left p-1 text-[0.68rem] bg-slate-700/60 hover:bg-slate-600 rounded flex justify-between">
-                                                <span className="font-bold truncate">{s.name}</span>
-                                                <span className="text-emerald-400">Pilih</span>
-                                            </button>
-                                        ))}
+
+                                    {/* Opsi 2: Terbang Bebas ke Seluruh Destinasi Papan */}
+                                    <div className="p-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-left flex flex-col">
+                                        <div className="flex items-center justify-between border-b border-slate-700/80 pb-1 mb-1.5">
+                                            <span className="text-[0.68rem] font-black uppercase text-amber-300 flex items-center gap-1">
+                                                <span>✈️</span> Terbang Bebas Ke:
+                                            </span>
+                                            <span className="text-[0.6rem] text-slate-400 font-bold">{board.filter(isOwnable).length} Lokasi</span>
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                                            {board.filter(isOwnable).map(s => {
+                                                const owner = s.owner !== undefined ? players[s.owner] : null;
+                                                const isMine = owner && owner.id === currentPlayer.id;
+                                                return (
+                                                    <button
+                                                        key={s.id}
+                                                        onClick={() => chooseParkingDestination(s.id)}
+                                                        className="w-full text-left p-1.5 text-[0.7rem] bg-slate-800/80 hover:bg-slate-700 rounded-lg flex items-center justify-between transition-colors border border-slate-700/50"
+                                                    >
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || '#94a3b8' }}></span>
+                                                            <span className="font-bold truncate text-white">{s.name}</span>
+                                                        </div>
+                                                        <span className="text-[0.65rem] shrink-0 ml-1 font-extrabold text-right">
+                                                            {isMine ? (
+                                                                <span className="text-blue-400">Milik Anda</span>
+                                                            ) : owner ? (
+                                                                <span className="text-amber-400">{owner.token} {owner.name}</span>
+                                                            ) : (
+                                                                <span className="text-emerald-400">Rp {s.price ? (s.price/1000) + 'k' : ''}</span>
+                                                            )}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
