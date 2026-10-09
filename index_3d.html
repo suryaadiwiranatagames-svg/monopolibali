@@ -1678,15 +1678,15 @@
                         const owner = players[space.owner];
                         if (owner) {
                             const markerGroup = new THREE.Group();
-                            // Pita Tebal Berwarna Pemilik di Tepi Petak (Proporsional Lebar 2.15)
+                            // Pita Tebal Berwarna Pemilik diletakkan di Bagian Bar Warna Atas Petak (Bukan di Harga)
                             const ribbon = new THREE.Mesh(
-                                new THREE.BoxGeometry(2.15, 0.16, 0.45),
+                                new THREE.BoxGeometry(2.15, 0.16, 0.35),
                                 new THREE.MeshStandardMaterial({ color: owner.color, roughness: 0.2, metalness: 0.45 })
                             );
-                            ribbon.position.set(0, 0.08, 1.7);
+                            ribbon.position.set(0, 0.08, -1.82);
                             markerGroup.add(ribbon);
 
-                            // Lencana Karakter Pemilik Mengambang
+                            // Lencana Karakter Pemilik Mengambang Tepat di Atas Bar Warna (Tidak Menghalangi Tulisan Nama & Harga)
                             const bCvs = document.createElement('canvas');
                             bCvs.width = 96; bCvs.height = 96;
                             const bctx = bCvs.getContext('2d');
@@ -1697,7 +1697,7 @@
                             bctx.fillText(owner.token, 48, 52);
 
                             const bSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(bCvs) }));
-                            bSprite.position.set(0, 0.9, 1.5);
+                            bSprite.position.set(0, 1.25, -1.45);
                             bSprite.scale.set(0.85, 0.85, 0.85);
                             markerGroup.add(bSprite);
 
@@ -1710,7 +1710,7 @@
                                 lctx.font = "36px sans-serif"; lctx.textAlign = "center"; lctx.textBaseline = "middle";
                                 lctx.fillText("🔒", 32, 34);
                                 const lSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(lCvs) }));
-                                lSprite.position.set(0, 1.5, 0);
+                                lSprite.position.set(0, 1.85, -1.45);
                                 lSprite.scale.set(0.8, 0.8, 0.8);
                                 markerGroup.add(lSprite);
                             }
@@ -1729,16 +1729,16 @@
 
                         if (space.hotel) {
                             const bMesh = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.75), new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 }));
-                            bMesh.position.set(0, 0.38, -1.2); bldGroup.add(bMesh);
+                            bMesh.position.set(0, 0.38, -1.05); bldGroup.add(bMesh);
                             const rMesh = new THREE.Mesh(new THREE.ConeGeometry(0.85, 0.65, 4), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2 }));
-                            rMesh.position.set(0, 1.05, -1.2); rMesh.rotation.y = Math.PI / 4; bldGroup.add(rMesh);
+                            rMesh.position.set(0, 1.05, -1.05); rMesh.rotation.y = Math.PI / 4; bldGroup.add(rMesh);
                         } else {
                             for (let h = 0; h < space.houses; h++) {
                                 const hOffset = (h - (space.houses - 1) / 2) * 0.48;
                                 const b = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.38, 0.44), new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 }));
-                                b.position.set(hOffset, 0.19, -1.2); bldGroup.add(b);
+                                b.position.set(hOffset, 0.19, -1.05); bldGroup.add(b);
                                 const r = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.3, 4), new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.4 }));
-                                r.position.set(hOffset, 0.52, -1.2); r.rotation.y = Math.PI / 4; bldGroup.add(r);
+                                r.position.set(hOffset, 0.52, -1.05); r.rotation.y = Math.PI / 4; bldGroup.add(r);
                             }
                         }
                         group.add(bldGroup);
