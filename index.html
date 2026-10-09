@@ -614,11 +614,22 @@
             const buildingMeshesRef = React.useRef({});
             const backgroundMusicRef = React.useRef(null);
             const gameRevisionRef = React.useRef(0);
-            const remoteUpdateRef = React.useRef(0);
+            const remoteUpdateRef = React.useRef("");
+            const roomChannelRef = React.useRef(null);
+            const latestStateRef = React.useRef(null);
+            const appliedStateRef = React.useRef(null);
+            const visualHandlersRef = React.useRef({});
+            const animatedPawnsRef = React.useRef(new Set());
+            const [syncStatus, setSyncStatus] = React.useState("Menghubungkan");
 
-            const myPlayerInfo = players.find(p => p.setupId === mySetupId) || players[0];
+            const myPlayerInfo = players.find(p => p.setupId === mySetupId);
             const currentPlayer = players[turnIndex] || players[0] || {};
             const isMyTurn = !isOnline || (myPlayerInfo && myPlayerInfo.id === turnIndex);
+            const ownsTurn = (state) => {
+                const player = state?.players?.[state.turnIndex];
+                return player && (player.isBot ? isHost : player.setupId === mySetupId);
+            };
+            const canDriveTurn = !isOnline || ownsTurn({ players, turnIndex });
             const canTakeAction = isMyTurn && !currentPlayer.isBot && !currentPlayer.bankrupt;
 
             const addLog = (msg) => { setLogs(prev => [msg, ...prev.slice(0, 45)]); };
@@ -747,7 +758,8 @@
                         isBot: false
                     };
                     const updated = [...data.lobby_players, playerInfo];
-                    await supabase.from('games').update({ lobby_players: updated }).eq('room_code', code);
+                    const { error: joinError } = await supabase.from('games').update({ lobby_players: updated }).eq('room_code', code);
+                    if (joinError) throw joinError;
                     setRoomCode(code); setIsOnline(true); setIsHost(false);
                     setHostName(data.lobby_players[0]?.name || "Host");
                     setLobbyPlayers(updated);
@@ -756,57 +768,115 @@
                 } catch (err) { setSetupError(err.message || "Gagal gabung room."); }
             };
 
-            // Supabase Realtime Listener
+            // Shared snapshots exclude local camera, selection and visual animation flags.
+            const sharedState = { board, players, turnIndex, turnPhase, freeParkingPot,
+                logs, currentRoll, touristSeasonTurns, totalTurnsCount, winner,
+                activeCard, selectedActionSpace, debtAction, parkingChoiceActive,
+                turnSummary, cardDecks, startingMoney };
+            const sharedFingerprint = JSON.stringify(sharedState);
+            latestStateRef.current = sharedState;
+
+            const broadcastVisual = (event, payload) => {
+                if (!isOnline || !canDriveTurn) return;
+                roomChannelRef.current?.send({ type: 'broadcast', event,
+                    payload: { ...payload, updater: mySetupId } }).catch(() => {});
+            };
+
             React.useEffect(() => {
                 if (!isOnline || !roomCode || !supabase) return;
-                const channel = supabase.channel(`room-${roomCode}`)
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `room_code=eq.${roomCode}` }, (payload) => {
-                        const data = payload.new;
-                        if (data.status === 'LOBBY' && screen !== 'GAME') {
-                            setLobbyPlayers(data.lobby_players || []);
-                            setRoomName(data.room_name || "Room Monopoli Bali");
-                        } else if (data.status === 'GAME') {
-                            if (screen !== 'GAME') setScreen('GAME');
-                            const s = data.game_state || {};
-                            if (s.updater === mySetupId) return;
-                            if (s.revision && s.revision <= gameRevisionRef.current) return;
-                            gameRevisionRef.current = s.revision;
-                            remoteUpdateRef.current = Date.now();
+                let disposed = false;
+                const applyRoom = (data) => {
+                    if (disposed || !data) return;
+                    if (data.status === 'LOBBY') {
+                        setLobbyPlayers(data.lobby_players || []);
+                        setRoomName(data.room_name || "Room Monopoli Bali");
+                        return;
+                    }
+                    const state = data.game_state;
+                    if (data.status !== 'GAME' || !state?.players?.length) return;
+                    if (state.updater === mySetupId || state.revision <= gameRevisionRef.current) return;
+                    gameRevisionRef.current = state.revision || 0;
+                    const { revision, updater, ...shared } = state;
+                    remoteUpdateRef.current = JSON.stringify(shared);
+                    appliedStateRef.current = shared;
+                    setBoard(shared.board); setPlayers(shared.players);
+                    setTurnIndex(shared.turnIndex); setTurnPhase(shared.turnPhase);
+                    setFreeParkingPot(shared.freeParkingPot); setLogs(shared.logs || []);
+                    setCurrentRoll(shared.currentRoll); setTouristSeasonTurns(shared.touristSeasonTurns);
+                    setTotalTurnsCount(shared.totalTurnsCount); setWinner(shared.winner || null);
+                    setActiveCard(shared.activeCard || null);
+                    setSelectedActionSpace(shared.selectedActionSpace || null);
+                    setDebtAction(shared.debtAction || null);
+                    setParkingChoiceActive(!!shared.parkingChoiceActive);
+                    if (shared.turnSummary) setTurnSummary(shared.turnSummary);
+                    if (shared.cardDecks) setCardDecks(shared.cardDecks);
+                    if (shared.startingMoney) setStartingMoney(shared.startingMoney);
+                    setScreen('GAME');
+                };
+                let reading = false;
+                const refresh = async () => {
+                    if (reading) return;
+                    reading = true;
+                    try {
+                        const { data, error } = await supabase.from('games').select('*').eq('room_code', roomCode).single();
+                        if (!error) applyRoom(data);
+                    } finally { reading = false; }
+                };
+                const channel = supabase.channel(`room-${roomCode}`, { config: { broadcast: { self: false } } })
+                    .on('broadcast', { event: 'game-state' }, ({ payload }) => applyRoom({ status: 'GAME', game_state: payload }))
+                    .on('broadcast', { event: 'dice' }, ({ payload }) => {
+                        if (payload.updater !== mySetupId) visualHandlersRef.current.dice?.(payload);
+                    })
+                    .on('broadcast', { event: 'move' }, ({ payload }) => {
+                        if (payload.updater !== mySetupId) visualHandlersRef.current.move?.(payload);
+                    })
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `room_code=eq.${roomCode}` }, ({ new: data }) => applyRoom(data))
+                    .subscribe(status => {
+                        if (disposed) return;
+                        setSyncStatus(status === 'SUBSCRIBED' ? 'Terhubung' : 'Menyambungkan ulang');
+                        if (status === 'SUBSCRIBED') refresh();
+                    });
+                roomChannelRef.current = channel;
+                refresh();
+                const poll = setInterval(refresh, 1500);
+                window.addEventListener('online', refresh);
+                return () => {
+                    disposed = true; clearInterval(poll);
+                    window.removeEventListener('online', refresh);
+                    roomChannelRef.current = null; supabase.removeChannel(channel);
+                };
+            }, [isOnline, roomCode, mySetupId]);
 
-                            if (s.board) setBoard(s.board);
-                            if (s.players) setPlayers(s.players);
-                            if (s.turnIndex !== undefined) setTurnIndex(s.turnIndex);
-                            if (s.turnPhase) setTurnPhase(s.turnPhase);
-                            if (s.freeParkingPot !== undefined) setFreeParkingPot(s.freeParkingPot);
-                            if (s.logs) setLogs(s.logs);
-                            if (s.currentRoll) setCurrentRoll(s.currentRoll);
-                            if (s.touristSeasonTurns !== undefined) setTouristSeasonTurns(s.touristSeasonTurns);
-                            if (s.totalTurnsCount !== undefined) setTotalTurnsCount(s.totalTurnsCount);
-                            if (s.winner !== undefined) setWinner(s.winner);
-                        }
-                    }).subscribe();
-
-                return () => { supabase.removeChannel(channel); };
-            }, [isOnline, roomCode, screen, mySetupId]);
-
-            // Push State ke Supabase
+            // Serialize saves so an older request cannot overwrite the next turn.
+            const saveQueueRef = React.useRef(Promise.resolve());
             React.useEffect(() => {
                 if (!isOnline || !roomCode || !supabase || screen !== 'GAME') return;
-                if (Date.now() - remoteUpdateRef.current < 250) return;
+                if (sharedFingerprint === remoteUpdateRef.current) return;
+                const previous = appliedStateRef.current;
+                if (!(previous ? ownsTurn(previous) : isHost)) return;
+                const state = { ...sharedState,
+                    revision: Math.max(Date.now(), gameRevisionRef.current + 1), updater: mySetupId };
+                gameRevisionRef.current = state.revision;
+                appliedStateRef.current = sharedState;
+                remoteUpdateRef.current = sharedFingerprint;
+                roomChannelRef.current?.send({ type: 'broadcast', event: 'game-state', payload: state }).catch(() => {});
+                saveQueueRef.current = saveQueueRef.current.catch(() => {}).then(async () => {
+                    const { error } = await supabase.from('games').update({ game_state: state, status: 'GAME' })
+                        .eq('room_code', roomCode)
+                        .or(`game_state.is.null,game_state->revision.is.null,game_state->revision.lt.${state.revision}`);
+                    if (error) setSyncStatus('Gagal menyimpan: ' + error.message);
+                });
+            }, [sharedFingerprint, isOnline, roomCode, screen, mySetupId, isHost]);
 
-                const timer = setTimeout(async () => {
-                    const rev = gameRevisionRef.current + 1;
-                    gameRevisionRef.current = rev;
-                    const state = {
-                        revision: rev, updater: mySetupId, board, players, turnIndex,
-                        turnPhase, freeParkingPot, logs, currentRoll, touristSeasonTurns,
-                        totalTurnsCount, winner
-                    };
-                    await supabase.from('games').update({ game_state: state, status: 'GAME' }).eq('room_code', roomCode);
-                }, 300);
-
-                return () => clearTimeout(timer);
-            }, [board, players, turnIndex, turnPhase, freeParkingPot, currentRoll, touristSeasonTurns, totalTurnsCount, winner]);
+            // Received positions must also update the Three.js meshes.
+            React.useEffect(() => {
+                players.forEach(player => {
+                    const pawn = playerMeshesRef.current[player.id];
+                    if (!pawn || animatedPawnsRef.current.has(player.id)) return;
+                    const coords = getTileCoordinates(player.position);
+                    pawn.position.set(coords.x, 1.6, coords.z);
+                });
+            }, [players, screen]);
 
             // Inisialisasi Tampilan Three.js & Raycaster
             React.useEffect(() => {
@@ -1766,10 +1836,10 @@
             };
 
             // Animasi Dadu 3D Menggelinding Lebih Banyak, Dramatis & Multi-Bounce Fisika Nyata
-            const roll3DDice = (d1, d2, onComplete) => {
+            const roll3DDice = (d1, d2, onComplete, visualOnly = false) => {
                 const dice = diceMeshesRef.current;
                 if (!dice || dice.length < 2) { onComplete(); return; }
-                setIsRolling(true);
+                if (!visualOnly) setIsRolling(true);
 
                 const faceRotations = {
                     1: { x: 0, z: Math.PI / 2 },
@@ -1867,7 +1937,7 @@
                             die.rotation.z = targetRot.z;
                             completedDice++;
                             if (completedDice === 2) {
-                                setIsRolling(false);
+                                if (!visualOnly) setIsRolling(false);
                                 onComplete();
                             }
                         })
@@ -1878,14 +1948,22 @@
             };
 
             // Animasi Bidak Melompat Parabola
-            const animatePawnMovement = (playerId, fromPos, steps, onComplete) => {
+            const animatePawnMovement = (playerId, fromPos, steps, onComplete, visualOnly = false) => {
                 const pawn = playerMeshesRef.current[playerId];
                 if (!pawn) { onComplete(); return; }
-                setIsMoving(true);
+                if (!visualOnly) {
+                    setIsMoving(true);
+                    broadcastVisual('move', { playerId, fromPos, steps });
+                }
+                animatedPawnsRef.current.add(playerId);
                 let currentStep = 0;
 
                 const stepNext = () => {
-                    if (currentStep >= steps) { setIsMoving(false); onComplete(); return; }
+                    if (currentStep >= steps) {
+                        animatedPawnsRef.current.delete(playerId);
+                        if (!visualOnly) setIsMoving(false);
+                        onComplete(); return;
+                    }
                     currentStep++;
                     const nextTileId = (fromPos + currentStep) % 40;
                     const targetCoords = getTileCoordinates(nextTileId);
@@ -1910,14 +1988,20 @@
                 stepNext();
             };
 
+            visualHandlersRef.current = {
+                dice: ({ d1, d2 }) => roll3DDice(d1, d2, () => {}, true),
+                move: ({ playerId, fromPos, steps }) => animatePawnMovement(playerId, fromPos, steps, () => {}, true)
+            };
+
             // Lempar Dadu & Gerak Otomatis
             const handleRollDice = () => {
-                if (isRolling || isMoving || turnPhase !== 'ROLL') return;
+                if (!canDriveTurn || isRolling || isMoving || turnPhase !== 'ROLL') return;
                 const d1 = Math.floor(Math.random() * 6) + 1;
                 const d2 = Math.floor(Math.random() * 6) + 1;
                 const total = d1 + d2;
                 const isDouble = d1 === d2;
 
+                broadcastVisual('dice', { d1, d2 });
                 setCurrentRoll([d1, d2]);
                 roll3DDice(d1, d2, () => {
                     addLog(`${currentPlayer.name} melempar ${d1} & ${d2} (Total: ${total})${isDouble ? ' • Kembar!' : ''}`);
@@ -1965,7 +2049,7 @@
 
             // Tahan Dadu (Hold to Roll)
             const startHoldRoll = () => {
-                if (isRolling || isMoving || turnPhase !== 'ROLL') return;
+                if (!canDriveTurn || isRolling || isMoving || turnPhase !== 'ROLL') return;
                 setIsHoldingDice(true);
                 setHoldProgress(0);
                 const start = Date.now();
@@ -2293,6 +2377,7 @@
             };
 
             const endTurn = () => {
+                if (!canDriveTurn) return;
                 const active = players.filter(p => !p.bankrupt);
                 if (active.length <= 1) {
                     setWinner(active[0] || currentPlayer);
@@ -2316,27 +2401,28 @@
 
             // Auto-End Turn 5s
             React.useEffect(() => {
-                if (turnPhase !== 'END') { setAutoEndCountdown(5); return; }
+                if (!canDriveTurn || turnPhase !== 'END') { setAutoEndCountdown(5); return; }
                 setAutoEndCountdown(5);
                 const timer = setInterval(() => setAutoEndCountdown(prev => Math.max(0, prev - 1)), 1000);
                 const timeout = setTimeout(() => endTurn(), 5000);
                 return () => { clearInterval(timer); clearTimeout(timeout); };
-            }, [turnPhase, turnIndex]);
+            }, [turnPhase, turnIndex, canDriveTurn]);
 
             // Bot Otomatis
             React.useEffect(() => {
-                if (screen !== 'GAME' || !currentPlayer.isBot || isRolling || isMoving) return;
+                if (!canDriveTurn || screen !== 'GAME' || !currentPlayer.isBot || isRolling || isMoving) return;
+                let botTimer;
                 if (turnPhase === 'ROLL') {
                     if (currentPlayer.inJail && currentPlayer.money >= JAIL_BRIBE_COST + 15000) {
-                        setTimeout(() => payJailBribeAndRoll(), 800);
+                        botTimer = setTimeout(() => payJailBribeAndRoll(), 800);
                     } else {
-                        setTimeout(() => handleRollDice(), 1200);
+                        botTimer = setTimeout(() => handleRollDice(), 1200);
                     }
                 } else if (turnPhase === 'END') {
-                    setTimeout(() => endTurn(), 1000);
+                    botTimer = setTimeout(() => endTurn(), 1000);
                 } else if (turnPhase === 'DEBT') {
                     // Bot darurat jual aset
-                    setTimeout(() => {
+                    botTimer = setTimeout(() => {
                         const myAssets = board.filter(s => s.owner === currentPlayer.id);
                         const buildingAsset = myAssets.find(s => s.houses > 0 || s.hotel);
                         if (buildingAsset) { sellOneBuilding(buildingAsset.id, currentPlayer.id); return; }
@@ -2346,7 +2432,8 @@
                         declareBankruptcy();
                     }, 1000);
                 }
-            }, [turnPhase, turnIndex, screen, isRolling, isMoving, debtAction]);
+                return () => clearTimeout(botTimer);
+            }, [canDriveTurn, turnPhase, turnIndex, screen, isRolling, isMoving, debtAction]);
 
             const updatePlayer = (id, changes) => {
                 setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...changes } : p));
@@ -2360,6 +2447,7 @@
             };
 
             const startGame = () => {
+                if (isOnline && !isHost) return;
                 const initPlayers = (lobbyPlayers.length >= 2 ? lobbyPlayers : players).map((p, idx) => ({
                     id: idx,
                     setupId: p.setupId,
@@ -2479,7 +2567,7 @@
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-4 mb-5">
                                 <div>
                                     <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-[0.65rem] font-black uppercase tracking-wider">
-                                        {isOnline ? `Online Room • Kode: ${roomCode}` : 'Mode Lokal (Hotseat)'}
+                                        {isOnline ? `Online Room • Kode: ${roomCode} • ${syncStatus}` : 'Mode Lokal (Hotseat)'}
                                     </span>
                                     <h1 className="text-2xl font-black mt-1 text-white">{roomName}</h1>
                                 </div>
@@ -2520,7 +2608,10 @@
                                                 const id = lobbyPlayers.length;
                                                 const nextToken = tokenChoices[id % tokenChoices.length];
                                                 const nextColor = playerColors[id % playerColors.length];
-                                                setLobbyPlayers(prev => [...prev, { setupId: `bot-${Date.now()}`, name: `Bot ${id}`, token: nextToken, color: nextColor, isBot: true }]);
+                                                const next = [...lobbyPlayers, { setupId: `bot-${Date.now()}`, name: `Bot ${id}`, token: nextToken, color: nextColor, isBot: true }];
+                                                setLobbyPlayers(next);
+                                                if (isOnline) supabase.from('games').update({ lobby_players: next }).eq('room_code', roomCode)
+                                                    .then(({ error }) => { if (error) setSetupError(error.message); });
                                             }}
                                             className="text-emerald-400 hover:text-emerald-300 font-bold text-xs"
                                         >
