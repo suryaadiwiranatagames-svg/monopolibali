@@ -309,42 +309,87 @@
             };
         };
 
-        // Tekstur Petak Canvas
+        // Tekstur Petak Canvas Resolusi Tinggi (512x720) & Kontras Tajam
         const createTileTexture = (space) => {
             const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 360;
+            canvas.width = 512; canvas.height = 720;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 256, 360);
-            ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 6; ctx.strokeRect(3, 3, 250, 354);
 
+            // Latar belakang kartu gading lembut (anti-silau)
+            ctx.fillStyle = "#fcfbfa";
+            ctx.fillRect(0, 0, 512, 720);
+
+            // Bingkai ganda kartu
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 12;
+            ctx.strokeRect(6, 6, 500, 708);
+
+            ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(20, 20, 472, 680);
+
+            // Baris Warna Properti
             if (space.type === 'property' && space.color) {
-                ctx.fillStyle = space.color; ctx.fillRect(4, 4, 248, 80);
-                ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.strokeRect(4, 4, 248, 80);
+                ctx.fillStyle = space.color;
+                ctx.fillRect(12, 12, 488, 175);
+                ctx.strokeStyle = "rgba(0,0,0,0.35)";
+                ctx.lineWidth = 6;
+                ctx.strokeRect(12, 12, 488, 175);
+
+                // Trim aksen emas di bawah color bar
+                ctx.fillStyle = "#d97706";
+                ctx.fillRect(12, 182, 488, 10);
             } else {
-                ctx.fillStyle = "#f1f5f9"; ctx.fillRect(4, 4, 248, 60);
+                ctx.fillStyle = "#e2e8f0";
+                ctx.fillRect(12, 12, 488, 130);
+                ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                ctx.lineWidth = 6;
+                ctx.strokeRect(12, 12, 488, 130);
             }
 
-            ctx.fillStyle = "#0f172a"; ctx.font = "bold 24px -apple-system, sans-serif";
-            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            // Nama Petak (Font Tebal Hitam Solid, Jelas & Mudah Dibaca)
+            ctx.fillStyle = "#090d16";
+            ctx.font = "900 42px -apple-system, BlinkMacSystemFont, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
             const words = space.name.split(" ");
-            if (words.length > 1) {
-                ctx.fillText(words.slice(0, 2).join(" "), 128, 140);
-                if (words.slice(2).join(" ")) ctx.fillText(words.slice(2).join(" "), 128, 172);
+            if (words.length > 2) {
+                ctx.fillText(words.slice(0, 2).join(" "), 256, 260);
+                ctx.fillText(words.slice(2).join(" "), 256, 315);
+            } else if (words.length === 2) {
+                ctx.fillText(words[0], 256, 260);
+                ctx.fillText(words[1], 256, 315);
             } else {
-                ctx.fillText(space.name, 128, 150);
+                ctx.fillText(space.name, 256, 280);
             }
 
-            ctx.font = "38px sans-serif";
+            // Ikon Petak Besar & Tajam
+            ctx.font = "84px sans-serif";
             const icons = { go: "🏁", port: "🚢", utility: "⚡", chance: "❓", chest: "🎁", jail: "🔒", gotojail: "🚔", parking: "🅿️", tax: "💰" };
-            ctx.fillText(icons[space.type] || "🏖️", 128, 220);
+            ctx.fillText(icons[space.type] || "🏖️", 256, 440);
 
+            // Badge Harga Beli (Pill Hijau Zamrud dengan Teks Putih Tebal)
             if (space.price) {
-                ctx.fillStyle = "#047857"; ctx.font = "bold 22px sans-serif";
-                ctx.fillText(`Rp ${(space.price / 1000)}k`, 128, 310);
+                const px = 64, py = 575, pw = 384, ph = 80;
+                ctx.fillStyle = "#064e3b";
+                ctx.beginPath();
+                ctx.arc(px + 40, py + 40, 40, Math.PI / 2, Math.PI * 1.5);
+                ctx.arc(px + pw - 40, py + 40, 40, Math.PI * 1.5, Math.PI / 2);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = "#10b981";
+                ctx.lineWidth = 5;
+                ctx.stroke();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "900 36px sans-serif";
+                ctx.fillText(`Rp ${space.price.toLocaleString('id-ID')}`, 256, py + 42);
             }
 
             const texture = new THREE.CanvasTexture(canvas);
-            texture.anisotropy = 8;
+            texture.anisotropy = 16;
             return texture;
         };
 
@@ -649,17 +694,17 @@
                 controls.minDistance = 12;
                 controls.maxDistance = 75;
 
-                // Lighting
-                scene.add(new THREE.AmbientLight(0xffeedd, 0.8));
-                const dirLight = new THREE.DirectionalLight(0xfffaf0, 1.35);
-                dirLight.position.set(22, 45, 22);
+                // Lighting (Seimbang & Anti-Silau)
+                scene.add(new THREE.AmbientLight(0xfff5eb, 0.5));
+                const dirLight = new THREE.DirectionalLight(0xfffaed, 0.75);
+                dirLight.position.set(20, 42, 20);
                 dirLight.castShadow = true;
                 dirLight.shadow.mapSize.width = 2048;
                 dirLight.shadow.mapSize.height = 2048;
                 dirLight.shadow.bias = -0.0005;
                 scene.add(dirLight);
 
-                const fillLight = new THREE.DirectionalLight(0x60a5fa, 0.35);
+                const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.25);
                 fillLight.position.set(-20, 20, -20);
                 scene.add(fillLight);
 
@@ -681,14 +726,131 @@
                 trimMesh.position.y = 1.42;
                 boardGroup.add(trimMesh);
 
-                // Center Art
-                new THREE.TextureLoader().load("Gemini_Generated_Image_djzwuldjzwuldjzw.png", (tex) => {
-                    const centerMesh = new THREE.Mesh(new THREE.PlaneGeometry(21.4, 21.4), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 }));
-                    centerMesh.rotation.x = -Math.PI / 2;
-                    centerMesh.position.y = 1.44;
-                    centerMesh.receiveShadow = true;
-                    boardGroup.add(centerMesh);
-                });
+                // Seni & Desain Tengah Papan 3D (Tampil Sempurna Tanpa Masalah CORS)
+                const createCenterMandalaCanvas = () => {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 1024; cvs.height = 1024;
+                    const c = cvs.getContext('2d');
+
+                    // Gradasi latar belakang kayu mahoni & zamrud gelap Bali
+                    const grad = c.createRadialGradient(512, 512, 80, 512, 512, 512);
+                    grad.addColorStop(0, '#064e3b');
+                    grad.addColorStop(0.55, '#043427');
+                    grad.addColorStop(0.85, '#19201a');
+                    grad.addColorStop(1, '#15100c');
+                    c.fillStyle = grad;
+                    c.fillRect(0, 0, 1024, 1024);
+
+                    // Bingkai ukiran emas ganda
+                    c.strokeStyle = '#d97706';
+                    c.lineWidth = 16;
+                    c.strokeRect(25, 25, 974, 974);
+                    c.strokeStyle = '#f59e0b';
+                    c.lineWidth = 6;
+                    c.strokeRect(42, 42, 940, 940);
+
+                    // Mandala Bunga Teratai Bali
+                    c.save();
+                    c.translate(512, 512);
+                    c.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+                    c.lineWidth = 4;
+                    for (let i = 0; i < 16; i++) {
+                        c.rotate(Math.PI / 8);
+                        c.beginPath();
+                        c.ellipse(0, 220, 80, 240, 0, 0, Math.PI * 2);
+                        c.stroke();
+                    }
+                    c.restore();
+
+                    // Medali Pusat
+                    c.beginPath();
+                    c.arc(512, 512, 290, 0, Math.PI * 2);
+                    c.fillStyle = 'rgba(15, 23, 42, 0.88)';
+                    c.fill();
+                    c.strokeStyle = '#f59e0b';
+                    c.lineWidth = 10;
+                    c.stroke();
+
+                    // Tipografi Tengah
+                    c.fillStyle = '#fef08a';
+                    c.font = 'bold 36px -apple-system, sans-serif';
+                    c.textAlign = 'center';
+                    c.textBaseline = 'middle';
+                    c.fillText('EDISI PARIWISATA & BUDAYA', 512, 420);
+
+                    c.fillStyle = '#ffffff';
+                    c.font = '900 86px -apple-system, sans-serif';
+                    c.fillText('MONOPOLI', 512, 495);
+
+                    c.fillStyle = '#f59e0b';
+                    c.font = '900 80px -apple-system, sans-serif';
+                    c.fillText('BALI 3D', 512, 575);
+
+                    c.fillStyle = '#94a3b8';
+                    c.font = 'bold 28px sans-serif';
+                    c.fillText('PULAU DEWATA • REPUBLIK INDONESIA', 512, 650);
+
+                    return cvs;
+                };
+
+                const centerTex = new THREE.CanvasTexture(createCenterMandalaCanvas());
+                centerTex.anisotropy = 16;
+                const centerMat = new THREE.MeshStandardMaterial({ map: centerTex, roughness: 0.55 });
+                const centerMesh = new THREE.Mesh(new THREE.PlaneGeometry(21.4, 21.4), centerMat);
+                centerMesh.rotation.x = -Math.PI / 2;
+                centerMesh.position.y = 1.44;
+                centerMesh.receiveShadow = true;
+                boardGroup.add(centerMesh);
+
+                // Muat Gambar Aset Jika Tersedia (Tanpa CORS Error)
+                const centerImg = new Image();
+                centerImg.src = "Gemini_Generated_Image_djzwuldjzwuldjzw.png";
+                centerImg.onload = () => {
+                    try {
+                        const artTex = new THREE.Texture(centerImg);
+                        artTex.needsUpdate = true;
+                        artTex.anisotropy = 16;
+                        centerMesh.material.map = artTex;
+                        centerMesh.material.needsUpdate = true;
+                    } catch(e) {}
+                };
+
+                // Tambahkan 2 Dek Kartu 3D di Tengah Papan (Kesempatan & Dana Punia)
+                const create3DCardDeck = (label, colorHex, posX, posZ, rotY) => {
+                    const deckGroup = new THREE.Group();
+                    const stackMesh = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.45, 2.8), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 }));
+                    stackMesh.position.y = 0.22;
+                    stackMesh.castShadow = true;
+                    deckGroup.add(stackMesh);
+
+                    const cardCvs = document.createElement('canvas');
+                    cardCvs.width = 256; cardCvs.height = 170;
+                    const cctx = cardCvs.getContext('2d');
+                    cctx.fillStyle = colorHex;
+                    cctx.fillRect(0, 0, 256, 170);
+                    cctx.strokeStyle = "#ffffff";
+                    cctx.lineWidth = 8;
+                    cctx.strokeRect(6, 6, 244, 158);
+                    cctx.fillStyle = "#ffffff";
+                    cctx.font = "bold 28px sans-serif";
+                    cctx.textAlign = "center";
+                    cctx.textBaseline = "middle";
+                    cctx.fillText(label, 128, 85);
+
+                    const topTex = new THREE.CanvasTexture(cardCvs);
+                    const topMat = new THREE.MeshStandardMaterial({ map: topTex, roughness: 0.3 });
+                    const topCard = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.8), topMat);
+                    topCard.rotation.x = -Math.PI / 2;
+                    topCard.position.y = 0.46;
+                    deckGroup.add(topCard);
+
+                    deckGroup.position.set(posX, 1.45, posZ);
+                    deckGroup.rotation.y = rotY;
+                    return deckGroup;
+                };
+
+                boardGroup.add(create3DCardDeck("KESEMPATAN", "#d97706", -5.5, -5.5, Math.PI / 4));
+                boardGroup.add(create3DCardDeck("DANA PUNIA", "#064e3b", 5.5, 5.5, Math.PI / 4));
 
                 // 40 Petak
                 boardData.forEach((space) => {
@@ -1607,6 +1769,35 @@
                                         Rp {currentPlayer.money.toLocaleString('id-ID')}
                                     </div>
                                 </div>
+                        {/* Papan Informasi Permainan Utama di Tengah Layar */}
+                        <div className="self-center interactive glass-panel rounded-2xl p-3.5 max-w-lg w-full mx-4 shadow-2xl border border-emerald-500/30 text-center">
+                            <div className="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-2 text-xs">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl p-1 rounded-lg bg-slate-800 shadow" style={{ borderBottom: `2px solid ${currentPlayer.color || '#fff'}` }}>
+                                        {currentPlayer.token}
+                                    </span>
+                                    <div className="text-left">
+                                        <span className="text-[0.65rem] text-slate-400 font-black uppercase tracking-wider block">Giliran Aktif (#{totalTurnsCount})</span>
+                                        <span className="font-black text-amber-300 text-sm leading-tight block">
+                                            {currentPlayer.name} {currentPlayer.isBot ? '(AI Bot)' : ''}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="text-right">
+                                    <span className="text-[0.65rem] text-slate-400 font-black uppercase tracking-wider block">Saldo Kas</span>
+                                    <span className="text-sm font-black text-emerald-400 block leading-tight">
+                                        Rp {currentPlayer.money ? currentPlayer.money.toLocaleString('id-ID') : 0}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Info Aksi Terkini (Turn Summary) */}
+                            <div className="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 text-xs">
+                                <span className="font-extrabold text-white text-sm block mb-0.5">{turnSummary.title}</span>
+                                <p className="text-slate-300 leading-snug text-xs">{turnSummary.detail}</p>
+                            </div>
+                        </div>
                             </div>
 
                             {/* Tombol Kamera, Audio, & Save */}
